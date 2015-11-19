@@ -1090,7 +1090,7 @@ void CheckOptimizedVersion(unsigned NumJumps, unsigned BodyLen)
       CheckSumReturnedFromDecryptor = xorDecryptHOP2(KeyBuf, (uint8_t *)(&SaltData), KeyCheckSum, DLen+1, Data);
     else if (NumJumps == 3)
       CheckSumReturnedFromDecryptor = xorDecryptHOP3(KeyBuf, (uint8_t *)(&SaltData), KeyCheckSum, DLen+1, Data);
-    else if (NumJumps == 3)
+    else if (NumJumps == 4)
       CheckSumReturnedFromDecryptor = xorDecryptHOP4(KeyBuf, (uint8_t *)(&SaltData), KeyCheckSum, DLen+1, Data);
     else exit(-1);
     
