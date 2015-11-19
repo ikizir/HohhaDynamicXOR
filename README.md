@@ -1,52 +1,35 @@
-# HohhaDynamicXOR
-Hohha Dynamic XOR Encryption Algorithm and C implementation:
+#"Schneier's Law"
 
-Hohha Dynamic XOR is a new symmetric encryption algorithm developed for Hohha Secure Instant Messaging Platform and opened to public with MIT&GPL Dual License.
+https://www.schneier.com/blog/archives/2011/04/schneiers_law.html
 
-The essential logic of the algorithm is using the key as a "jump table" which is dynamically updated with every "jump" we make.
+Back in 1998, I wrote:
 
-To understand better how it functions, suppose that we don't have a complex function.
+> Anyone, from the most clueless amateur to the best cryptographer, can create an algorithm that he himself can't break.
 
-Given the key body length(L) is a power of 2, and M is an integer to tell us where we are in the "key body":
+In 2004, Cory Doctorow called this Schneier's law:
 
-We just take the byte at position M of the key body, we XOR that byte with the byte to be encrypted(X).
-We increase the byte at position M and "jump to" (M+X)%L
+> ...what I think of as Schneier's Law: "any person can invent a security system so clever that she or he can't think of how to break it."
 
-So, every time we encrypt a byte, we also change the key. It's a bit more complicated than this. But essentially this is the base logic. In real function, we do more complex operations with more variables like the salt(or nonce) value, the last byte we encrypted, the key checksum(against related key attacks) etc.
+The general idea is older than my writing. Wikipedia points out that in The Codebreakers, David Kahn writes:
 
-Briefly, to decypher a ciphertext, a cracker needs to find out the key, and, to find out the key, cracker needs to find out the plaintext, because the key is dynamically updated according to plaintext during encryption process: Maybe not impossible theoretically, but surely very very difficult practically!
+> Few false ideas have more firmly gripped the minds of so many intelligent men than the one that, if they just tried, they could invent a cipher that no one could break.
 
-I believe this algorithm is the future of the encryption. Maybe it is not perfect. But, I believe, this "dynamic key" model is the right way for the encryption. It is in public domain. It is public property. And we all need it. Let's try to get it more secure and faster together, if possible.
+The idea is even older. Back in 1864, Charles Babbage wrote:
 
-The code is constantly updated and improved. 
+> One of the most singular characteristics of the art of deciphering is the strong conviction possessed by every person, even moderately acquainted with it, that he is able to construct a cipher which nobody else can decipher.
 
-Use it! And please, let me know if you use: ikizir@gmail.com
+My phrasing is different, though. Here's my original quote in context:
 
-# Usage
+> Anyone, from the most clueless amateur to the best cryptographer, can create an algorithm that he himself can't break. It's not even hard. What is hard is creating an algorithm that no one else can break, even after years of analysis. And the only way to prove that is to subject the algorithm to years of analysis by the best cryptographers around.
 
-void xorGetKey(uint8_t NumJumps, uint32_t BodyLen, uint8_t *KeyBuf);
+And here's me in 2006:
 
-Creates an encryption key.
-NumJumps is the number of jumps(or rounds) to encrypt or decrypt a data. The actual maximum value is 4(But if you find it weak, I can increase that limit. I just have to write hand optimized functions). This parameter directly affects speed and strength of the algorithm. If you choose higher values, the encryption will be more secure but slower.
+> Anyone can invent a security system that he himself cannot break. I've said this so often that Cory Doctorow has named it "Schneier's Law": When someone hands you a security system and says, "I believe this is secure," the first thing you have to ask is, "Who the hell are you?" Show me what you've broken to demonstrate that your assertion of the system's security means something.
 
-BodyLen is the number of bytes in the key body. It must be a power of 2 e.g. 64,128,256,512 ...
-It has no influence on the speed of the algorithm. 
-This parameter affects only the strength of the algorithm. Higher values you choose, higher security you get. Choose large numbers especially if you are going to encrypt large files.
+And that's the point I want to make. It's not that people believe they can create an unbreakable cipher; it's that people create a cipher that they themselves can't break, and then use that as evidence they've created an unbreakable cipher.
 
-KeyBuf is pointer to an "already allocated" buffer to hold the entire key. To compute the size of the resulting key, you may use xorComputeKeyBufLen macro.
+EDITED TO ADD (4/16): This is an example of the Dunning-Kruger effect, named after the authors of this paper: "Unskilled and Unaware of It: How Difficulties in recognizing One's Own Incompetence Lead to Inflated Self-Assessments."
 
-Suppose that we want to create a key with 4 jumps and a body size of 1024 bytes. The code will be:
+> Abstract: People tend to hold overly favorable views of their abilities in many social and intellectual domains. The authors suggest that this overestimation occurs, in part, because people who are unskilled in these domains suffer a dual burden: Not only do these people reach erroneous conclusions and make unfortunate choices, but their incompetence robs them of the metacognitive ability to realize it. Across 4 studies, the authors found that participants scoring in the bottom quartile on tests of humor, grammar, and logic grossly overestimated their test performance and ability. Although their test scores put them in the 12th percentile, they estimated themselves to be in the 62nd. Several analyses linked this miscalibration to deficits in metacognitive skill, or the capacity to distinguish accuracy from error. Paradoxically, improving the skills of participants, and thus increasing their metacognitive competence, helped them recognize the limitations of their abilities.
 
-#define BODY_LEN 1024
-#define NUM_JUMPS 4
-
-uint8_t KeyCheckSum;
-unsigned RawKeyLen = xorComputeKeyBufLen(BODY_LEN);
-uint8_t *KeyBuf = (uint8_t *)malloc(RawKeyLen);
-xorGetKey(NumJumps, BodyLen, KeyBuf);
-KeyCheckSum = xorComputeKeyCheckSum(KeyBuf);
-
-KeyCheckSum is the 8 bit CRC checksum of the key. Every time you create a key, you must also compute its checksum. In order to use the key for encryption, or decryption, we must give that checksum as a parameter.
-Now, we have the key and the checksum. We want to encrypt our data.
-
-... I am still writing the documentation --- to be continued ---
+EDITED TO ADD (4/18): If I have any contribution to this, it's to generalize it to security systems and not just to cryptographic algorithms. Because anyone can design a security system that he cannot break, evaluating the security credentials of the designer is an essential aspect of evaluating the system's security.
