@@ -1149,7 +1149,7 @@ void Test1(unsigned NumJumps, unsigned BodyLen)
     CheckSumReturnedFromEncryptor = xorEncryptHOP2(KeyBuf, (uint8_t *)(&SaltData), KeyCheckSum, DLen, Data2); 
   else if (NumJumps == 3)
     CheckSumReturnedFromEncryptor = xorEncryptHOP3(KeyBuf, (uint8_t *)(&SaltData), KeyCheckSum, DLen, Data2); 
-  else if (NumJumps == 3)
+  else if (NumJumps == 4)
     CheckSumReturnedFromEncryptor = xorEncryptHOP4(KeyBuf, (uint8_t *)(&SaltData), KeyCheckSum, DLen, Data2); 
   else exit(-1);
   
@@ -1254,6 +1254,7 @@ int main()
   //D1();
   Test1(2, BodyLen);
   Test1(3, BodyLen);
+  Test1(4, BodyLen);
   //Test1(4, BodyLen);
   //Test1(5, BodyLen);
   
@@ -1261,6 +1262,7 @@ int main()
   //MemCpyBenchmark1(TestSampleLength, NumIterations);
   CheckOptimizedVersion(2, BodyLen);
   CheckOptimizedVersion(3, BodyLen);
+  CheckOptimizedVersion(4, BodyLen);
   //CheckOptimizedVersion(5, BodyLen);
   
   
