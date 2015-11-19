@@ -5,7 +5,7 @@ Hohha Dynamic XOR is a new symmetric encryption algorithm developed for Hohha Se
 
 The essential logic of the algorithm is using the key as a "jump table" which is dynamically updated with every "jump".
 
-To better understand how this functions, suppose that we don't have a complex function.
+To better understand how these functions, suppose that we don't have a complex function.
 
 Given the key body length(L) is a power of 2, and M is an integer that tell us where we are in the "key body":
 
