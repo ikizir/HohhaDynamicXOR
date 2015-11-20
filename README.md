@@ -36,6 +36,61 @@ We increase the byte at position M and "jump to" (M+X)%L
 
 So, every time we encrypt a byte, we also change the key. *It's a bit more complicated than this*. But this is fundamentally the basic logic. In a real function, we do more complex operations with more variables like the salt(or nonce) value, the last byte we encrypted, the key checksum(against related key attacks) etc.
 
+Here is the encryption code:
+```C
+uint64_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
+{ // Encrypts message and returns checksum of the InOutBuf BEFORE encyption
+  // SaltData is a 8 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
+  register uint32_t tt, M;
+  register size_t t;
+  register uint8_t XORVal, LastVal = 0,TmpVal; // Last PLAINTEXT byte processed. It will be an input parameter for the next encryption
+  register uint64_t Checksum=0;
+  register uint32_t BodyMask = GetBodyLen(K); // +1 because we will use this "Mersenne number" for & operation instead of modulus operation
+  uint8_t Body[MAX_BODY_SIZE];
+  
+  memcpy(Body,K+SP_BODY,BodyMask);
+  BodyMask--;
+  
+  Salt[0] ^= KeyCheckSum; LastVal += Salt[0];
+  Salt[1] ^= KeyCheckSum; LastVal += Salt[1]; 
+  Salt[2] ^= KeyCheckSum; LastVal += Salt[2]; 
+  Salt[3] ^= KeyCheckSum; LastVal += Salt[3]; 
+  Salt[4] ^= KeyCheckSum; LastVal += Salt[4]; 
+  Salt[5] ^= KeyCheckSum; LastVal += Salt[5]; 
+  Salt[6] ^= KeyCheckSum; LastVal += Salt[6]; 
+  Salt[7] ^= KeyCheckSum; LastVal += Salt[7]; 
+  
+  // Initial position of the pointer depends on actual salt value
+  M = (BodyMask & Salt[LastVal&(SALT_SIZE-1)]);
+  //printf("xorEncrypt BodyLen: %u KeyCheckSum: %u Salt: %u\n",BodyLen, KeyCheckSum,Salt);
+  
+  for (t=0; t<InOutDataLen; t++)
+  {
+    // First jump step is previous plaintext byte
+    XORVal = Body[M]; 
+    M = (M ^ LastVal) & BodyMask; 
+
+    for (tt=1; tt < GetNumJumps(K); tt++)
+    {
+      // All following jumps are based on body values
+      XORVal ^= Body[M]; 
+      M = (M ^ Body[M]) & BodyMask; 
+    }
+    Checksum += InOutBuf[t]; 
+    TmpVal = InOutBuf[t]; 
+    XORVal ^= LastVal; 
+    XORVal ^= *(Salt + (LastVal&(SALT_SIZE-1))); \
+    InOutBuf[t] ^= ((uint8_t)(XORVal)); \
+    LastVal = TmpVal; 
+
+    Body[M] = ROL32_1(Body[M]); 
+    Body[M]++;
+    Body[M] ^= LastVal;
+  }
+  return Checksum;
+} 
+```
+
 Briefly, to decypher a ciphertext, a cracker needs to find out the key, and, to find out the key, cracker needs to find out the plaintext, because the key is dynamically updated according to plaintext and the jump path is chosen accoding to plaintext+encrypted text during encryption process; Probably not impossible, in theory, but in practice very difficult!
 
 I believe this algorithm is the future of encryption. It may not be perfect. However, I believe, this "dynamic key" model is the right way for encryption security. This project is in the public domain, thus public property, and I believe we all can benefit greatly from it. By Open Sourcing this code, I hope to make it faster and stronger together.
