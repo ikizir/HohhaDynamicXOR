@@ -66,14 +66,16 @@ uint64_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOut
   
   for (t=0; t<InOutDataLen; t++)
   {
-    // First jump step is previous plaintext byte
-    XORVal = Body[M]; 
+    // In first two jumps, we take 4 bits of each key body element
+    XORVal = Body[M] & 0b11110000U; 
     M = (M ^ LastVal) & BodyMask; 
-
-    for (tt=1; tt < GetNumJumps(K); tt++)
+    XORVal |= (Body[M] & 0b00001111U); 
+    M = (M ^ LastVal) & BodyMask; 
+    
+    for (tt=2; tt < GetNumJumps(K); tt++)
     {
       // All following jumps are based on body values
-      XORVal |= Body[M]; 
+      XORVal ^= Body[M]; 
       M = (M ^ Body[M]) & BodyMask; 
     }
     Checksum += InOutBuf[t]; 
@@ -89,6 +91,7 @@ uint64_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOut
   }
   return Checksum;
 } 
+
 ```
 
 Briefly, to decypher a ciphertext, a cracker needs to find out the key, and, to find out the key, cracker needs to find out the plaintext, because the key is dynamically updated according to plaintext and the jump path is chosen accoding to plaintext+encrypted text during encryption process; Probably not impossible, in theory, but in practice very difficult!
