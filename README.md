@@ -52,7 +52,7 @@ A "really professional" guy, on an encryption mailing list, full of "Security Go
 Here is why.
 Let's have a key body of just 128 random bytes, and 3 as the number of jumps. Forget the key body length now. 
 For "every transaction", we send 8 bytes of Salt(or nonce) data unique for that transaction! Which adds 2^64 complexity.
-For every transaction, we also use 1 byte of crc key checksum data. Which adds 2^8 complexity. Which makes, 2^72 possibilities for each bytes encrypted. Because, anytime, any bit of this values change, entire "jump path" and the "entire" ciphertext will be different! Those are the essential parameters besides key body elements for each byte to be encrypted! At least 2^72 complexity brute force attack is necessary just to make any meaningful analysis. Not breaking! Just analyzing!
+For every transaction, we also use 1 byte of crc key checksum data. Which adds 2^8 complexity. Which makes, 2^72 as the lowest limit for any meaningful attack. Because, anytime, any bit of this values change, entire "jump path" and the "entire" ciphertext will be different! Those are the essential parameters besides key body elements for each byte to be encrypted! At least 2^72 complexity brute force attack is necessary just to make any meaningful analysis. Not breaking! Just analyzing!
 
 Hey! We don't count the key body into consideration yet! This is just the randomness we add to encyrption for each operation. 
 And huh! Even without taking key body into account; we are above the security level provided by DES; which has 2^56 complexity for brute force attacks.
