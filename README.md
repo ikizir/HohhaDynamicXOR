@@ -55,12 +55,20 @@ For "every transaction", we send 8 bytes of Salt(or nonce) data unique for that 
 For every transaction, we also use 1 byte of crc key checksum data. Which adds 2^8 complexity. Which makes, 2^72 as the lowest limit for any meaningful attack. Because, anytime, any bit of this values change, entire "jump path" and the "entire" ciphertext will be different! Those are the essential parameters besides key body elements for each byte to be encrypted! At least 2^72 complexity brute force attack is necessary just to make any meaningful analysis. Not breaking! Just analyzing!
 
 Hey! We don't take the key body into consideration yet! This is just the randomness we add to encyrption for each operation. 
-And huh! Even without taking key body into consideration; we are above the security level provided by DES; which has 2^56 complexity for brute force attacks.
+And huh! Even without taking key body into consideration; we are above the security level provided by DES; which has 2^56 complexity for brute force attacks and approved by "authorities" to protect sensible data unce open a time!
+
+The "starting" point of the data is randomly chosen upon the salt value.
+So, just to "anaylyze" or "detect" which is the "starting" position of the jump for an encryption or decryption process, we must add 2^7 possibilities.
+
+Now, we have 2^79 brute force algorithmic complexity just to know "the jump starting point"! Again! Without taking into consideration key body! Just to start to a "meaningful attack"!
+
 Considering we have only the key body, for every byte to be encrypted, there are 128 * 128 * 128 possibilities to obtain the number to be finally XORed with plaintext byte! 
 And every time we encrypt a byte from plaintext, we encrypt a byte from key body!
 
+Consequently, considering the algorithm "leaks" data about the key; a "minimum" brute force attack complexity is 2^100. It is really the minimum base to tell anything meaningful about key! Again: Not the complexity to break it! To obtain the minimum information possible about the key!
+
 As I told you, I am not an expert.
-I don't claim it is "impossible" to break.But those are the base numbers. 
+I don't claim it is "impossible" to break.But those are the base numbers. I may be wrong. And this is a public place. Correct me if I am wrong please!
 I just tell, for example, for my specific needs in a chat application, where the keys are not used for a very long time, it seems enough. It is up to you to decide. Take your own risk! Think carefully when to use, where to use it! All I can do is to share my ideas transparently.
 
 ## Usage
