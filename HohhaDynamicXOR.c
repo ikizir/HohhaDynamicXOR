@@ -511,18 +511,18 @@ void xorAnalyzeKey(uint8_t *K)
  */
 
 #define MakeXOREnc(InOutBuf,XORVal,Salt,KeyCheckSum,PlainTextChecksum,LastVal,TmpVal,Counter)\
-PlainTextChecksum += InOutBuf[Counter]; \
-TmpVal = InOutBuf[Counter]; \
-XORVal ^= LastVal; \
-XORVal ^= *(Salt + (LastVal&(SALT_SIZE-1))); \
-InOutBuf[Counter] ^= ((uint8_t)(XORVal)); \
+PlainTextChecksum += InOutBuf[Counter];\
+TmpVal = InOutBuf[Counter];\
+XORVal ^= LastVal;\
+XORVal ^= *(Salt + (LastVal&(SALT_SIZE-1)));\
+InOutBuf[Counter] ^= ((uint8_t)(XORVal));\
 LastVal = TmpVal; 
 
 #define MakeXORDec(InOutBuf,XORVal,Salt,KeyCheckSum,PlainTextChecksum,LastVal,Counter)\
-XORVal ^= LastVal; \
-XORVal ^= *(Salt + (LastVal&(SALT_SIZE-1))); \
-InOutBuf[Counter] ^= ((uint8_t)(XORVal)); \
-LastVal = InOutBuf[Counter]; \
+XORVal ^= LastVal;\
+XORVal ^= *(Salt + (LastVal&(SALT_SIZE-1)));\
+InOutBuf[Counter] ^= ((uint8_t)(XORVal));\
+LastVal = InOutBuf[Counter];\
 PlainTextChecksum += LastVal; 
 
 //Salt[Counter&SALT_SIZE]++; XORVal ^= (KeyCheckSum ^ Salt[Counter&SALT_SIZE]); 
@@ -564,14 +564,14 @@ uint64_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOut
     for (tt=1; tt < GetNumJumps(K); tt++)
     {
       // All following jumps are based on body values
-      XORVal ^= Body[M]; 
+      XORVal |= Body[M]; 
       M = (M ^ Body[M]) & BodyMask; 
     }
     Checksum += InOutBuf[t]; 
     TmpVal = InOutBuf[t]; 
     XORVal ^= LastVal; 
-    XORVal ^= *(Salt + (LastVal&(SALT_SIZE-1))); \
-    InOutBuf[t] ^= ((uint8_t)(XORVal)); \
+    XORVal ^= *(Salt + (LastVal&(SALT_SIZE-1)));
+    InOutBuf[t] ^= ((uint8_t)(XORVal));
     LastVal = TmpVal; 
 
     Body[M] = ROL32_1(Body[M]); 
@@ -615,13 +615,13 @@ uint64_t xorDecrypt(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOut
     for (tt=1; tt < GetNumJumps(K); tt++)
     {
       // All following jumps are based on body values
-      XORVal ^= Body[M]; 
+      XORVal |= Body[M]; 
       M = (M + Body[M]) & BodyMask; 
     }
-    XORVal ^= LastVal; \
-    XORVal ^= *(Salt + (LastVal&(SALT_SIZE-1))); \
-    InOutBuf[t] ^= ((uint8_t)(XORVal)); \
-    LastVal = InOutBuf[t]; \
+    XORVal ^= LastVal; 
+    XORVal ^= *(Salt + (LastVal&(SALT_SIZE-1))); 
+    InOutBuf[t] ^= ((uint8_t)(XORVal)); 
+    LastVal = InOutBuf[t]; 
     Checksum += LastVal; 
 
 
@@ -663,7 +663,7 @@ uint64_t xorEncryptHOP2(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t I
     XORVal = Body[M]; 
     M = (M ^ LastVal) & BodyMask; 
     // All following jump steps are based on body values
-    XORVal ^= Body[M]; 
+    XORVal |= Body[M]; 
     M = (M ^ Body[M]) & BodyMask; 
     MakeXOREnc(InOutBuf,XORVal,Salt,KeyCheckSum,Checksum,LastVal,TmpVal,t);
     Body[M] = ROL32_1(Body[M]); 
@@ -705,7 +705,7 @@ uint64_t xorDecryptHOP2(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t I
     XORVal = Body[M]; 
     M = (M ^ LastVal) & BodyMask; 
     // All following jumps are based on body values
-    XORVal ^= Body[M]; 
+    XORVal |= Body[M]; 
     M = (M ^ Body[M]) & BodyMask; 
     MakeXORDec(InOutBuf,XORVal,Salt,KeyCheckSum,Checksum,LastVal,t);
     Body[M] = ROL32_1(Body[M]); 
@@ -745,9 +745,9 @@ uint64_t xorEncryptHOP3(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t I
     XORVal = Body[M]; 
     M = (M ^ LastVal) & BodyMask; 
     // All following jumps are based on body values
-    XORVal ^= Body[M]; 
+    XORVal |= Body[M]; 
     M = (M ^ Body[M]) & BodyMask; 
-    XORVal ^= Body[M]; 
+    XORVal |= Body[M]; 
     M = (M ^ Body[M]) & BodyMask; 
     MakeXOREnc(InOutBuf,XORVal,Salt,KeyCheckSum,Checksum,LastVal,TmpVal,t);
     Body[M] = ROL32_1(Body[M]); 
@@ -789,9 +789,9 @@ uint64_t xorDecryptHOP3(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t I
     XORVal = Body[M]; 
     M = (M ^ LastVal) & BodyMask; 
     // All following jumps are based on body values
-    XORVal ^= Body[M]; 
+    XORVal |= Body[M]; 
     M = (M ^ Body[M]) & BodyMask; 
-    XORVal ^= Body[M]; 
+    XORVal |= Body[M]; 
     M = (M ^ Body[M]) & BodyMask; 
     MakeXORDec(InOutBuf,XORVal,Salt,KeyCheckSum,Checksum,LastVal,t);
     Body[M] = ROL32_1(Body[M]); 
@@ -832,11 +832,11 @@ uint64_t xorEncryptHOP4(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t I
     XORVal = Body[M]; 
     M = (M ^ LastVal) & BodyMask; 
     // All following jumps are based on body values
-    XORVal ^= Body[M]; 
+    XORVal |= Body[M]; 
     M = (M ^ Body[M]) & BodyMask; 
-    XORVal ^= Body[M]; 
+    XORVal |= Body[M]; 
     M = (M ^ Body[M]) & BodyMask; 
-    XORVal ^= Body[M]; 
+    XORVal |= Body[M]; 
     M = (M ^ Body[M]) & BodyMask; 
     MakeXOREnc(InOutBuf,XORVal,Salt,KeyCheckSum,Checksum,LastVal,TmpVal,t);
     Body[M] = ROL32_1(Body[M]); 
@@ -878,11 +878,11 @@ uint64_t xorDecryptHOP4(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t I
     XORVal = Body[M]; 
     M = (M ^ LastVal) & BodyMask; 
     // All following jumps are based on body values
-    XORVal ^= Body[M]; 
+    XORVal |= Body[M]; 
     M = (M ^ Body[M]) & BodyMask; 
-    XORVal ^= Body[M]; 
+    XORVal |= Body[M]; 
     M = (M ^ Body[M]) & BodyMask; 
-    XORVal ^= Body[M]; 
+    XORVal |= Body[M]; 
     M = (M ^ Body[M]) & BodyMask; 
     MakeXORDec(InOutBuf,XORVal,Salt,KeyCheckSum,Checksum,LastVal,t);
     Body[M] = ROL32_1(Body[M]); 
