@@ -390,13 +390,6 @@ void RandomizeBuffer()
 #endif
   RandomBufStartPos=0;
   ReadRandomBytesFromUDEv(RANDOM_BUF_SIZE, RandomBuf);
-  
-#ifdef OVERLY_VERBOSE
-  int t;
-  for (t=0; t<RANDOM_BUF_SIZE; t++)
-    printf("%u ",RandomBuf[t]);
-  printf("\n\n");
-#endif
 }
 
 void GetRandomNumbers(uint32_t ByteCount, uint8_t *Buffer)
@@ -457,7 +450,6 @@ static inline int ROR32_1(int v) {
 #define FALSE (0U)
 #define TRUE (!(FALSE))
 #define VERBOSE
-//#define OVERLY_VERBOSE
 
 /* Function used to determine if V is unique among the first Pos elements
  * Used by the xorGetKey function to check particle length uniqueness
@@ -550,14 +542,14 @@ uint64_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOut
   memcpy(Body,K+SP_BODY,BodyMask);
   BodyMask--;
   
-  Salt[0] ^= KeyCheckSum;
-  Salt[1] ^= KeyCheckSum;
-  Salt[2] ^= KeyCheckSum;
-  Salt[3] ^= KeyCheckSum;
-  Salt[4] ^= KeyCheckSum;
-  Salt[5] ^= KeyCheckSum;
-  Salt[6] ^= KeyCheckSum;
-  Salt[7] ^= KeyCheckSum;
+  Salt[0] ^= KeyCheckSum; LastVal += Salt[0];
+  Salt[1] ^= KeyCheckSum; LastVal += Salt[1]; 
+  Salt[2] ^= KeyCheckSum; LastVal += Salt[2]; 
+  Salt[3] ^= KeyCheckSum; LastVal += Salt[3]; 
+  Salt[4] ^= KeyCheckSum; LastVal += Salt[4]; 
+  Salt[5] ^= KeyCheckSum; LastVal += Salt[5]; 
+  Salt[6] ^= KeyCheckSum; LastVal += Salt[6]; 
+  Salt[7] ^= KeyCheckSum; LastVal += Salt[7]; 
   
   // Initial position of the pointer depends on actual salt value
   M = (BodyMask & Salt[Salt[0]&(SALT_SIZE-1)]);
@@ -575,7 +567,13 @@ uint64_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOut
       XORVal ^= Body[M]; 
       M = (M ^ Body[M]) & BodyMask; 
     }
-    MakeXOREnc(InOutBuf,XORVal,Salt,KeyCheckSum,Checksum,LastVal,TmpVal,t);
+    Checksum += InOutBuf[t]; 
+    TmpVal = InOutBuf[t]; 
+    XORVal ^= LastVal; 
+    XORVal ^= *(Salt + (LastVal&(SALT_SIZE-1))); \
+    InOutBuf[t] ^= ((uint8_t)(XORVal)); \
+    LastVal = TmpVal; 
+
     Body[M] = ROL32_1(Body[M]); 
     Body[M]++;
     Body[M] ^= LastVal;
@@ -595,14 +593,14 @@ uint64_t xorDecrypt(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOut
   memcpy(Body,K+SP_BODY,BodyMask);
   BodyMask--;
   
-  Salt[0] ^= KeyCheckSum;
-  Salt[1] ^= KeyCheckSum;
-  Salt[2] ^= KeyCheckSum;
-  Salt[3] ^= KeyCheckSum;
-  Salt[4] ^= KeyCheckSum;
-  Salt[5] ^= KeyCheckSum;
-  Salt[6] ^= KeyCheckSum;
-  Salt[7] ^= KeyCheckSum;
+  Salt[0] ^= KeyCheckSum; LastVal += Salt[0];
+  Salt[1] ^= KeyCheckSum; LastVal += Salt[1]; 
+  Salt[2] ^= KeyCheckSum; LastVal += Salt[2]; 
+  Salt[3] ^= KeyCheckSum; LastVal += Salt[3]; 
+  Salt[4] ^= KeyCheckSum; LastVal += Salt[4]; 
+  Salt[5] ^= KeyCheckSum; LastVal += Salt[5]; 
+  Salt[6] ^= KeyCheckSum; LastVal += Salt[6]; 
+  Salt[7] ^= KeyCheckSum; LastVal += Salt[7]; 
   
   // Initial position of the pointer is dependent on actual salt value
   M = (BodyMask & Salt[Salt[0]&(SALT_SIZE-1)]);
@@ -620,7 +618,13 @@ uint64_t xorDecrypt(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOut
       XORVal ^= Body[M]; 
       M = (M + Body[M]) & BodyMask; 
     }
-    MakeXORDec(InOutBuf,XORVal,Salt,KeyCheckSum,Checksum,LastVal,t);
+    XORVal ^= LastVal; \
+    XORVal ^= *(Salt + (LastVal&(SALT_SIZE-1))); \
+    InOutBuf[t] ^= ((uint8_t)(XORVal)); \
+    LastVal = InOutBuf[t]; \
+    Checksum += LastVal; 
+
+
     Body[M] = ROL32_1(Body[M]); 
     Body[M]++;
     Body[M] ^= LastVal;
@@ -641,14 +645,14 @@ uint64_t xorEncryptHOP2(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t I
   memcpy(Body,K+SP_BODY,BodyMask);
   BodyMask--;
   
-  Salt[0] ^= KeyCheckSum;
-  Salt[1] ^= KeyCheckSum;
-  Salt[2] ^= KeyCheckSum;
-  Salt[3] ^= KeyCheckSum;
-  Salt[4] ^= KeyCheckSum;
-  Salt[5] ^= KeyCheckSum;
-  Salt[6] ^= KeyCheckSum;
-  Salt[7] ^= KeyCheckSum;
+  Salt[0] ^= KeyCheckSum; LastVal += Salt[0];
+  Salt[1] ^= KeyCheckSum; LastVal += Salt[1]; 
+  Salt[2] ^= KeyCheckSum; LastVal += Salt[2]; 
+  Salt[3] ^= KeyCheckSum; LastVal += Salt[3]; 
+  Salt[4] ^= KeyCheckSum; LastVal += Salt[4]; 
+  Salt[5] ^= KeyCheckSum; LastVal += Salt[5]; 
+  Salt[6] ^= KeyCheckSum; LastVal += Salt[6]; 
+  Salt[7] ^= KeyCheckSum; LastVal += Salt[7]; 
   
   // Initial position of the pointer is dependent on actual salt value
   M = (BodyMask & Salt[Salt[0]&(SALT_SIZE-1)]);
@@ -682,14 +686,14 @@ uint64_t xorDecryptHOP2(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t I
   memcpy(Body,K+SP_BODY,BodyMask);
   BodyMask--;
   
-  Salt[0] ^= KeyCheckSum;
-  Salt[1] ^= KeyCheckSum;
-  Salt[2] ^= KeyCheckSum;
-  Salt[3] ^= KeyCheckSum;
-  Salt[4] ^= KeyCheckSum;
-  Salt[5] ^= KeyCheckSum;
-  Salt[6] ^= KeyCheckSum;
-  Salt[7] ^= KeyCheckSum;
+  Salt[0] ^= KeyCheckSum; LastVal += Salt[0];
+  Salt[1] ^= KeyCheckSum; LastVal += Salt[1]; 
+  Salt[2] ^= KeyCheckSum; LastVal += Salt[2]; 
+  Salt[3] ^= KeyCheckSum; LastVal += Salt[3]; 
+  Salt[4] ^= KeyCheckSum; LastVal += Salt[4]; 
+  Salt[5] ^= KeyCheckSum; LastVal += Salt[5]; 
+  Salt[6] ^= KeyCheckSum; LastVal += Salt[6]; 
+  Salt[7] ^= KeyCheckSum; LastVal += Salt[7]; 
   
   // Initial position of the pointer is dependent on actual salt value
   M = (BodyMask & Salt[Salt[0]&(SALT_SIZE-1)]);
@@ -723,14 +727,14 @@ uint64_t xorEncryptHOP3(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t I
   memcpy(Body,K+SP_BODY,BodyMask);
   BodyMask--;
   
-  Salt[0] ^= KeyCheckSum;
-  Salt[1] ^= KeyCheckSum;
-  Salt[2] ^= KeyCheckSum;
-  Salt[3] ^= KeyCheckSum;
-  Salt[4] ^= KeyCheckSum;
-  Salt[5] ^= KeyCheckSum;
-  Salt[6] ^= KeyCheckSum;
-  Salt[7] ^= KeyCheckSum;
+  Salt[0] ^= KeyCheckSum; LastVal += Salt[0];
+  Salt[1] ^= KeyCheckSum; LastVal += Salt[1]; 
+  Salt[2] ^= KeyCheckSum; LastVal += Salt[2]; 
+  Salt[3] ^= KeyCheckSum; LastVal += Salt[3]; 
+  Salt[4] ^= KeyCheckSum; LastVal += Salt[4]; 
+  Salt[5] ^= KeyCheckSum; LastVal += Salt[5]; 
+  Salt[6] ^= KeyCheckSum; LastVal += Salt[6]; 
+  Salt[7] ^= KeyCheckSum; LastVal += Salt[7]; 
   
   // Initial position of the pointer is dependent on actual salt value
   M = (BodyMask & Salt[Salt[0]&(SALT_SIZE-1)]);
@@ -766,14 +770,14 @@ uint64_t xorDecryptHOP3(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t I
   memcpy(Body,K+SP_BODY,BodyMask);
   BodyMask--;
   
-  Salt[0] ^= KeyCheckSum;
-  Salt[1] ^= KeyCheckSum;
-  Salt[2] ^= KeyCheckSum;
-  Salt[3] ^= KeyCheckSum;
-  Salt[4] ^= KeyCheckSum;
-  Salt[5] ^= KeyCheckSum;
-  Salt[6] ^= KeyCheckSum;
-  Salt[7] ^= KeyCheckSum;
+  Salt[0] ^= KeyCheckSum; LastVal += Salt[0];
+  Salt[1] ^= KeyCheckSum; LastVal += Salt[1]; 
+  Salt[2] ^= KeyCheckSum; LastVal += Salt[2]; 
+  Salt[3] ^= KeyCheckSum; LastVal += Salt[3]; 
+  Salt[4] ^= KeyCheckSum; LastVal += Salt[4]; 
+  Salt[5] ^= KeyCheckSum; LastVal += Salt[5]; 
+  Salt[6] ^= KeyCheckSum; LastVal += Salt[6]; 
+  Salt[7] ^= KeyCheckSum; LastVal += Salt[7]; 
   
   // Initial position of the pointer is dependent on actual salt value
   M = (BodyMask & Salt[Salt[0]&(SALT_SIZE-1)]);
@@ -810,14 +814,14 @@ uint64_t xorEncryptHOP4(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t I
   memcpy(Body,K+SP_BODY,BodyMask);
   BodyMask--;
   
-  Salt[0] ^= KeyCheckSum;
-  Salt[1] ^= KeyCheckSum;
-  Salt[2] ^= KeyCheckSum;
-  Salt[3] ^= KeyCheckSum;
-  Salt[4] ^= KeyCheckSum;
-  Salt[5] ^= KeyCheckSum;
-  Salt[6] ^= KeyCheckSum;
-  Salt[7] ^= KeyCheckSum;
+  Salt[0] ^= KeyCheckSum; LastVal += Salt[0];
+  Salt[1] ^= KeyCheckSum; LastVal += Salt[1]; 
+  Salt[2] ^= KeyCheckSum; LastVal += Salt[2]; 
+  Salt[3] ^= KeyCheckSum; LastVal += Salt[3]; 
+  Salt[4] ^= KeyCheckSum; LastVal += Salt[4]; 
+  Salt[5] ^= KeyCheckSum; LastVal += Salt[5]; 
+  Salt[6] ^= KeyCheckSum; LastVal += Salt[6]; 
+  Salt[7] ^= KeyCheckSum; LastVal += Salt[7]; 
   
   // Initial position of the pointer is dependent on actual salt value
   M = (BodyMask & Salt[Salt[0]&(SALT_SIZE-1)]);
@@ -855,14 +859,14 @@ uint64_t xorDecryptHOP4(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t I
   memcpy(Body,K+SP_BODY,BodyMask);
   BodyMask--;
   
-  Salt[0] ^= KeyCheckSum;
-  Salt[1] ^= KeyCheckSum;
-  Salt[2] ^= KeyCheckSum;
-  Salt[3] ^= KeyCheckSum;
-  Salt[4] ^= KeyCheckSum;
-  Salt[5] ^= KeyCheckSum;
-  Salt[6] ^= KeyCheckSum;
-  Salt[7] ^= KeyCheckSum;
+  Salt[0] ^= KeyCheckSum; LastVal += Salt[0];
+  Salt[1] ^= KeyCheckSum; LastVal += Salt[1]; 
+  Salt[2] ^= KeyCheckSum; LastVal += Salt[2]; 
+  Salt[3] ^= KeyCheckSum; LastVal += Salt[3]; 
+  Salt[4] ^= KeyCheckSum; LastVal += Salt[4]; 
+  Salt[5] ^= KeyCheckSum; LastVal += Salt[5]; 
+  Salt[6] ^= KeyCheckSum; LastVal += Salt[6]; 
+  Salt[7] ^= KeyCheckSum; LastVal += Salt[7]; 
   
   // Initial position of the pointer depends on actual salt value
   M = (BodyMask & Salt[Salt[0]&(SALT_SIZE-1)]);
@@ -1130,13 +1134,7 @@ void Test1(unsigned NumJumps, unsigned BodyLen)
   KeyCheckSum = xorComputeKeyCheckSum(KeyBuf);
   Base64EncodedKeyStr = Base64Encode((const char *)KeyBuf, RawKeyLen);
   printf("Base64 encoded key: %s\n", Base64EncodedKeyStr);
-#ifdef OVERLY_VERBOSE
-  printf("Analyzing raw key data:\n");
-  TParsedKey *PK0 = xorParseKey(KeyBuf);
-  xorAnalyzeKey(PK0);
-  free(PK0);
-  free(KeyBuf);
-#endif
+
   xorAnalyzeKey(KeyBuf);
   memset(&Data, 0, sizeof(Data));
   memset(&Data2, 0, sizeof(Data2));
