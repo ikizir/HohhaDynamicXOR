@@ -552,7 +552,7 @@ uint64_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOut
   Salt[7] ^= KeyCheckSum; LastVal += Salt[7]; 
   
   // Initial position of the pointer depends on actual salt value
-  M = (BodyMask & Salt[Salt[0]&(SALT_SIZE-1)]);
+  M = (BodyMask & Salt[LastVal&(SALT_SIZE-1)]);
   //printf("xorEncrypt BodyLen: %u KeyCheckSum: %u Salt: %u\n",BodyLen, KeyCheckSum,Salt);
   
   for (t=0; t<InOutDataLen; t++)
@@ -603,7 +603,7 @@ uint64_t xorDecrypt(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOut
   Salt[7] ^= KeyCheckSum; LastVal += Salt[7]; 
   
   // Initial position of the pointer is dependent on actual salt value
-  M = (BodyMask & Salt[Salt[0]&(SALT_SIZE-1)]);
+  M = (BodyMask & Salt[LastVal&(SALT_SIZE-1)]);
   //printf("xorEncrypt BodyLen: %u KeyCheckSum: %u Salt: %u\n",BodyLen, KeyCheckSum,Salt);
   
   for (t=0; t<InOutDataLen; t++)
@@ -655,7 +655,7 @@ uint64_t xorEncryptHOP2(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t I
   Salt[7] ^= KeyCheckSum; LastVal += Salt[7]; 
   
   // Initial position of the pointer is dependent on actual salt value
-  M = (BodyMask & Salt[Salt[0]&(SALT_SIZE-1)]);
+  M = (BodyMask & Salt[LastVal&(SALT_SIZE-1)]);
   //printf("xorEncrypt BodyLen: %u KeyCheckSum: %u Salt: %u\n",BodyLen, KeyCheckSum,Salt);
   for (t=0; t<InOutDataLen; t++)
   {
@@ -696,7 +696,7 @@ uint64_t xorDecryptHOP2(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t I
   Salt[7] ^= KeyCheckSum; LastVal += Salt[7]; 
   
   // Initial position of the pointer is dependent on actual salt value
-  M = (BodyMask & Salt[Salt[0]&(SALT_SIZE-1)]);
+  M = (BodyMask & Salt[LastVal&(SALT_SIZE-1)]);
   //printf("xorEncrypt BodyLen: %u KeyCheckSum: %u Salt: %u\n",BodyLen, KeyCheckSum,Salt);
   
   for (t=0; t<InOutDataLen; t++)
@@ -737,7 +737,7 @@ uint64_t xorEncryptHOP3(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t I
   Salt[7] ^= KeyCheckSum; LastVal += Salt[7]; 
   
   // Initial position of the pointer is dependent on actual salt value
-  M = (BodyMask & Salt[Salt[0]&(SALT_SIZE-1)]);
+  M = (BodyMask & Salt[LastVal&(SALT_SIZE-1)]);
   //printf("xorEncrypt BodyLen: %u KeyCheckSum: %u Salt: %u\n",BodyLen, KeyCheckSum,Salt);
   for (t=0; t<InOutDataLen; t++)
   {
@@ -780,7 +780,7 @@ uint64_t xorDecryptHOP3(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t I
   Salt[7] ^= KeyCheckSum; LastVal += Salt[7]; 
   
   // Initial position of the pointer is dependent on actual salt value
-  M = (BodyMask & Salt[Salt[0]&(SALT_SIZE-1)]);
+  M = (BodyMask & Salt[LastVal&(SALT_SIZE-1)]);
   //printf("xorEncrypt BodyLen: %u KeyCheckSum: %u Salt: %u\n",BodyLen, KeyCheckSum,Salt);
   
   for (t=0; t<InOutDataLen; t++)
@@ -824,7 +824,7 @@ uint64_t xorEncryptHOP4(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t I
   Salt[7] ^= KeyCheckSum; LastVal += Salt[7]; 
   
   // Initial position of the pointer is dependent on actual salt value
-  M = (BodyMask & Salt[Salt[0]&(SALT_SIZE-1)]);
+  M = (BodyMask & Salt[LastVal&(SALT_SIZE-1)]);
   //printf("xorEncrypt BodyLen: %u KeyCheckSum: %u Salt: %u\n",BodyLen, KeyCheckSum,Salt);
   for (t=0; t<InOutDataLen; t++)
   {
@@ -869,7 +869,7 @@ uint64_t xorDecryptHOP4(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t I
   Salt[7] ^= KeyCheckSum; LastVal += Salt[7]; 
   
   // Initial position of the pointer depends on actual salt value
-  M = (BodyMask & Salt[Salt[0]&(SALT_SIZE-1)]);
+  M = (BodyMask & Salt[LastVal&(SALT_SIZE-1)]);
   //printf("xorEncrypt BodyLen: %u KeyCheckSum: %u Salt: %u\n",BodyLen, KeyCheckSum,Salt);
   
   for (t=0; t<InOutDataLen; t++)
