@@ -56,7 +56,7 @@ For every transaction, we also use 1 byte of crc key checksum data. Which adds 2
 
 Hey! We don't count the key body into consideration yet! This is just the randomness we add to encyrption for each operation. 
 And huh! Even without taking key body into account; we are above the security level provided by DES; which has 2^56 complexity for brute force attacks.
-Considering we have only the key body, for every byte to be encrypted, there are 128*128*128 possibilities to obtain the number to be finally XORed with plaintext byte! 
+Considering we have only the key body, for every byte to be encrypted, there are 128 * 128 * 128 possibilities to obtain the number to be finally XORed with plaintext byte! 
 And every time we encrypt a byte from plaintext, we encrypt a byte from key body!
 
 As I told you, I am not an expert.
