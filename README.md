@@ -1,6 +1,22 @@
 # HohhaDynamicXOR
 Hohha Dynamic XOR Encryption Algorithm Theory and its C implementation:
 
+I would really want, to promise my customers "An approved Standart Security". 
+But a real "security" on which they could rely on; and focus on my commercial products.
+What I am doing, is not something I desire.
+The history of "approved standards" is a proof to not to trust to so called "Security Authorities", "Experts" or "Cryptography Gods".
+Do you want proof:
+https://en.wikipedia.org/wiki/Transport_Layer_Security
+This is a "proof"!
+
+SSL 3.0 doesn't include "any" secure encryption implementation.
+AES 256 CBC is not included in TLS 1.3 draft.
+All others are slow and again, untrustable considering the history.
+
+I'd rather prefer to try to develop my own and improve it by seeing my
+mistakes and my bottlenecks with the transparent help from the
+community.
+
 Nearly every encryption algorithm proven by "Cryptoanalysis Gods" or NSA are broken. 
 In SSL 3.0 standart, there is not a unique algorithm which is considered secure anymore: https://en.wikipedia.org/wiki/Transport_Layer_Security
 And, in TLS 1.3 Draft, AES CBC mode doesn't exist.
