@@ -1,6 +1,7 @@
+This version is leaking keys. We are working on random distribution.
 # HohhaDynamicXOR
 Hohha Dynamic XOR Encryption Algorithm Theory and its C implementation:
-Note: This version is leaking keys. We are working on random distribution.
+
 I would really want, to promise my customers "An approved Standart Security". 
 But a real "security" on which they could rely on; and focus on my commercial products.
 What I am doing, is not something I desire.
