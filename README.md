@@ -73,14 +73,14 @@ uint64_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOut
     for (tt=1; tt < GetNumJumps(K); tt++)
     {
       // All following jumps are based on body values
-      XORVal ^= Body[M]; 
+      XORVal |= Body[M]; 
       M = (M ^ Body[M]) & BodyMask; 
     }
     Checksum += InOutBuf[t]; 
     TmpVal = InOutBuf[t]; 
     XORVal ^= LastVal; 
-    XORVal ^= *(Salt + (LastVal&(SALT_SIZE-1))); \
-    InOutBuf[t] ^= ((uint8_t)(XORVal)); \
+    XORVal ^= *(Salt + (LastVal&(SALT_SIZE-1)));
+    InOutBuf[t] ^= ((uint8_t)(XORVal));
     LastVal = TmpVal; 
 
     Body[M] = ROL32_1(Body[M]); 
