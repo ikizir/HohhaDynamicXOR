@@ -32,7 +32,7 @@ The code is constantly updated and improved.
 
 Please feel free to test it and share your success or faux-pas: ikizir@gmail.com
 
-# Usage
+## Usage
 
 void xorGetKey(uint8_t NumJumps, uint32_t BodyLen, uint8_t *KeyBuf);
 
@@ -47,6 +47,7 @@ KeyBuf is pointer to an "already allocated" buffer to hold the entire key. To co
 
 Suppose that we want to create a key with 4 jumps and a body size of 1024 bytes. The code will be:
 
+```C
 #define BODY_LEN 1024
 #define NUM_JUMPS 4
 
@@ -55,6 +56,7 @@ unsigned RawKeyLen = xorComputeKeyBufLen(BODY_LEN);
 uint8_t *KeyBuf = (uint8_t *)malloc(RawKeyLen);
 xorGetKey(NumJumps, BodyLen, KeyBuf);
 KeyCheckSum = xorComputeKeyCheckSum(KeyBuf);
+```
 
 KeyCheckSum is the 8 bit CRC checksum of the key. Every time you create a key, you must also compute its checksum. In order to use the key for encryption, or decryption, we must give that checksum as a parameter.
 Now, we have the key and the checksum. We want to encrypt our data.
