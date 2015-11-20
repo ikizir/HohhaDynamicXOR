@@ -7,25 +7,19 @@ What I am doing, is not something I desire.
 The history of "approved standards" is a proof to not to trust to so called "Security Authorities", "Experts" or "Cryptography Gods".
 Do you want proof:
 https://en.wikipedia.org/wiki/Transport_Layer_Security
-This is a "proof"!
+This is a "proof"! A real proof to not to trust to "approved standarts"!
 
 SSL 3.0 doesn't include "any" secure encryption implementation.
 AES 256 CBC is not included in TLS 1.3 draft.
 All others are slow and again, untrustable considering the history.
 
-I'd rather prefer to try to develop my own and improve it by seeing my
-mistakes and my bottlenecks with the transparent help from the
-community.
+I'd rather prefer to try to develop my own and improve it by seeing my mistakes and my bottlenecks with the transparent help from the community.
 
-Nearly every encryption algorithm proven by "Cryptoanalysis Gods" or NSA are broken. 
-In SSL 3.0 standart, there is not a unique algorithm which is considered secure anymore: https://en.wikipedia.org/wiki/Transport_Layer_Security
-And, in TLS 1.3 Draft, AES CBC mode doesn't exist.
-
-I've decided to implement my own algorithm, for my specific needs in my Secure Chat Application.
-I am not a "crypto expert", but just a programming professional, I've decided to collaboratively develop a crypto algorithm. 
-I'd rather prefer to try to improve transparently a collaborative work, instead of relying on suspicious "Cryptoanalysis Gods"!
-If you think it is breakable, you're welcome, this is why it's in public domain. Please tell us "how"! Let's think together and improve it.
-------------------------------------------------------------------------------------
+I am not a "crypto expert", I haven't mathematical background to prove that's "secure", as the "authorities" do!  
+But I believe in common sense and collaboration.
+I'd rather prefer to try to improve transparently a collaborative work, instead of relying on suspicious "Cryptoanalysis Gods" and "Authorities"!
+If you think it is breakable, you're welcome, this is why it's in public domain. Please tell us "how"! Let's think together and improve it. 
+We will all use this for our specific needs. And if we think carefully, we can adapt it to different requirements. Nobody prevents us from creating derivatives. This is freedom and the spirit of "open source".
 
 Hohha Dynamic XOR is a new symmetric encryption algorithm developed for Hohha Secure Instant Messaging Platform and opened to the public via dual licence MIT and GPL.
 
@@ -56,8 +50,7 @@ Creates an encryption key.
 NumJumps is the number of jumps(or rounds) to encrypt or decrypt a data. The actual maximum value is 4(But if you find it weak, I can increase that limit. I just have to write hand optimized functions). This parameter directly affects speed and strength of the algorithm. If you choose higher values, the encryption will be more secure but slower.
 
 BodyLen is the number of bytes in the key body. It must be a power of 2 (e.g. 64,128,256,512 ...)
-It has no impact on the speed of the algorithm. 
-This parameter affects only the strength of the algorithm. Higher values you choose, higher security you get. Choose large numbers especially if you are going to encrypt large files.
+It has negligible impact on the speed of the algorithm, but a direct impact on strength: Higher values you choose, higher security you get. Choose large numbers especially if you are going to encrypt large files.
 
 KeyBuf is pointer to an "already allocated" buffer to hold the entire key. To compute the size of the resulting key, you may use xorComputeKeyBufLen macro.
 
