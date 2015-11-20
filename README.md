@@ -36,7 +36,7 @@ We increase the byte at position M and "jump to" (M+X)%L
 
 So, every time we encrypt a byte, we also change the key. *It's a bit more complicated than this*. But this is fundamentally the basic logic. In a real function, we do more complex operations with more variables like the salt(or nonce) value, the last byte we encrypted, the key checksum(against related key attacks) etc.
 
-Briefly, to decypher a ciphertext, a cracker needs to find out the key, and, to find out the key, cracker needs to find out the plaintext, because the key is dynamically updated according to plaintext during encryption process; Probably not impossible, in theory, but in practice very difficult!
+Briefly, to decypher a ciphertext, a cracker needs to find out the key, and, to find out the key, cracker needs to find out the plaintext, because the key is dynamically updated according to plaintext and the jump path is chosen accoding to plaintext+encrypted text during encryption process; Probably not impossible, in theory, but in practice very difficult!
 
 I believe this algorithm is the future of encryption. It may not be perfect. However, I believe, this "dynamic key" model is the right way for encryption security. This project is in the public domain, thus public property, and I believe we all can benefit greatly from it. By Open Sourcing this code, I hope to make it faster and stronger together.
 
@@ -52,9 +52,9 @@ A "really professional" guy, on an encryption mailing list, full of "Security Go
 Here is why.
 Let's have a key body of just 128 random bytes, and 3 as the number of jumps. Forget the key body length now. 
 For "every transaction", we send 8 bytes of Salt(or nonce) data unique for that transaction! Which adds 2^64 complexity.
-For every transaction, we also use 1 byte of crc key checksum data. Which adds 2^8 complexity. Which makes, 2^72 as the lowest limit for any meaningful attack. Because, anytime, any bit of this values change, entire "jump path" and the "entire" ciphertext will be different! Those are the essential parameters besides key body elements for each byte to be encrypted! At least 2^72 complexity brute force attack is necessary just to make any meaningful analysis. Not breaking! Just analyzing!
+For every transaction, we also use 1 byte of crc key checksum data. Which adds 2^8 complexity. Which makes, 2^72 as the lowest limit for any meaningful attack. Because, anytime, any bit of this values change, entire "jump path" and the "entire" ciphertext will be different! Those are the essential parameters besides key body elements for each byte to be encrypted! At least 2^72 complexity brute force attack is necessary just to make any meaningful analysis. Not breaking! Just for being sure to having eliminated the random data added to every encryption&decryption process. 
 
-Hey! We don't take the key body into consideration yet! This is just the randomness we add to encyrption for each operation. 
+Hey! We don't take the key body into consideration yet! That was just for the randomness we add to encyrption for each operation. 
 And huh! Even without taking key body into consideration; we are above the security level provided by DES; which has 2^56 complexity for brute force attacks and approved by "authorities" to protect sensible data unce open a time!
 
 The "starting" point of the data is randomly chosen upon the salt value.
@@ -69,7 +69,11 @@ When the "analyze" begins: I don't want to give huge numbers, but the rest of an
 
 As I told you, I am not an expert.
 I don't claim it is "impossible" to break.But those are the base numbers. I may be wrong. And this is a public place. Correct me if I am wrong please!
-I just tell, for example, for my specific needs in a chat application, where the keys are not used for a very long time, it seems enough. It is up to you to decide. Take your own risk! Think carefully when to use, where to use it! All I can do is to share my ideas transparently.
+I just tell, for example, for my specific needs in a chat application, where the keys are not used for a very long time, it seems enough. 
+Each user pair will use 4 jump level keys with 1024 byte key body for their private chats. I think, it is fairly enough.
+It is up to you to decide. Take your own risk! Think carefully when to use, where to use it! All I can do is to share my ideas transparently.
+
+The algorithm is not safe against side channel or any physical type of attack. You must take care of your phone or computer.
 
 ## Usage
 ```C
