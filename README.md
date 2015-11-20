@@ -21,6 +21,8 @@ I'd rather prefer to try to improve transparently a collaborative work, instead 
 If you think it is breakable, you're welcome, this is why it's in public domain. Please tell us "how"! Let's think together and improve it. 
 We will all use this for our specific needs. And if we think carefully, we can adapt it to different requirements. Nobody prevents us from creating derivatives. This is freedom and the spirit of "open source".
 
+## Algorithm
+
 Hohha Dynamic XOR is a new symmetric encryption algorithm developed for Hohha Secure Instant Messaging Platform and opened to the public via dual licence MIT and GPL.
 
 The essential logic of the algorithm is using the key as a "jump table" which is dynamically updated with every "jump".
@@ -43,11 +45,11 @@ The code is constantly updated and improved.
 Please feel free to test it and share your success or faux-pas: ikizir@gmail.com
 
 ## Usage
-
+```C
 void xorGetKey(uint8_t NumJumps, uint32_t BodyLen, uint8_t *KeyBuf);
-
+```
 Creates an encryption key.
-NumJumps is the number of jumps(or rounds) to encrypt or decrypt a data. The actual maximum value is 4(But if you find it weak, I can increase that limit. I just have to write hand optimized functions). This parameter directly affects speed and strength of the algorithm. If you choose higher values, the encryption will be more secure but slower.
+NumJumps is the number of jumps(or rounds) to encrypt or decrypt data. The actual maximum value is 4(But if you find it weak, I(or you) can increase that limit. I just have to write hand optimized functions). This parameter directly affects speed and strength of the algorithm. If you choose higher values, the encryption will be more secure but slower.
 
 BodyLen is the number of bytes in the key body. It must be a power of 2 (e.g. 64,128,256,512 ...)
 It has negligible impact on the speed of the algorithm, but a direct impact on strength: Higher values you choose, higher security you get. Choose large numbers especially if you are going to encrypt large files.
@@ -69,5 +71,132 @@ KeyCheckSum = xorComputeKeyCheckSum(KeyBuf);
 
 KeyCheckSum is the 8 bit CRC checksum of the key. Every time you create a key, you must also compute its checksum. In order to use the key for encryption, or decryption, we must give that checksum as a parameter.
 Now, we have the key and the checksum. We want to encrypt our data.
+
+#### Encryption and decryption
+
+We have generic functions to encrypt or decrypt data, but, we don't suggest using them in real life. Instead, use, hand optimized HOPx versions. For 2 jump keys, use HOP2 versions, for 3 jumps use HOP3 etc.
+
+```C
+uint64_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf);
+uint64_t xorDecrypt(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
+uint64_t xorEncryptHOP2(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf);
+uint64_t xorDecryptHOP2(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf);
+uint64_t xorEncryptHOP3(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf);
+uint64_t xorDecryptHOP3(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf);
+uint64_t xorEncryptHOP4(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf);
+uint64_t xorDecryptHOP4(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf);
+```
+xorEncrypt encrypts data:
+K is the key buffer we created earlier as shown in the example above.
+Salt(or nonce, or iv whatever you want to call) is a 8 bytes long random value array. For each encryption, we must create a random 8 byte value. To obtain cryptographycally secure numbers from /dev/urandom under Linux, you can use the GetRandomNumbers function:
+```C
+void GetRandomNumbers(uint32_t ByteCount, uint8_t *Buffer)
+```
+
+KeyCheckSum is the 8 bit CRC we obtained via xorComputeKeyCheckSum macro as shown in the example
+InOutDataLen is the number of bytes to be encrypted.
+InOutBuf is the input and also output buffer. 
+On return, functions return a uint64_t checksum of the plaintext.
+
+xorDecrypt decrypts data:
+K is the key buffer we created earlier as shown in the example above.
+Salt(or nonce, or iv whatever you want to call) must be the same value we used to encrypt data.
+KeyCheckSum is the 8 bit CRC we obtained via xorComputeKeyCheckSum macro as shown in the example
+InOutDataLen is the number of bytes to be encrypted.
+InOutBuf is the input and also output buffer. 
+On return, functions return a uint64_t checksum of the plaintext.
+
+Here is the code snippet taken from benchmark program to encrypt, decrypt and verify data:
+
+```C
+void Test1(unsigned NumJumps, unsigned BodyLen)
+{
+  unsigned long long int DLen, OriginalPlainTextCheckSum, CheckSumReturnedFromEncryptor, CheckSumReturnedFromDecryptor;
+  unsigned RawKeyLen = xorComputeKeyBufLen(BodyLen);
+  uint8_t *KeyBuf = (uint8_t *)malloc(RawKeyLen);
+  uint8_t Data[2048],Data2[2048];
+  char *Base64EncodedKeyStr, *Base64CipherText;
+  uint8_t KeyCheckSum;
+  uint64_t SaltData=1234;
+  
+  printf("----------- TEST 1: BASIC FUNCTIONALITY(%u Jumps) --------------\n",NumJumps);
+  xorGetKey(NumJumps, BodyLen, KeyBuf);
+  KeyCheckSum = xorComputeKeyCheckSum(KeyBuf);
+  Base64EncodedKeyStr = Base64Encode((const char *)KeyBuf, RawKeyLen);
+  printf("Base64 encoded key: %s\n", Base64EncodedKeyStr);
+
+  xorAnalyzeKey(KeyBuf);
+  memset(&Data, 0, sizeof(Data));
+  memset(&Data2, 0, sizeof(Data2));
+  DLen = TESTSTR1_LEN; 
+  memcpy(Data, TESTSTR1, DLen);
+  memcpy(Data2, TESTSTR1, DLen);
+  OriginalPlainTextCheckSum = BufCheckSum(Data, DLen);
+  CheckSumReturnedFromEncryptor = xorEncrypt(KeyBuf, (uint8_t *)(&SaltData), KeyCheckSum, DLen, Data); // We encrypt with non-optimized version
+  if (OriginalPlainTextCheckSum != CheckSumReturnedFromEncryptor)
+  {
+    printf("Original Checksum %llu returned from BufChecksum fnc <> Checksum %llu returned from non-optimized encryptor\n",OriginalPlainTextCheckSum,CheckSumReturnedFromEncryptor);
+    exit(-1);
+  } else printf("OriginalPlainTextCheckSum %llu = CheckSumReturnedFromEncryptor %llu :: SUCCESS!\n",OriginalPlainTextCheckSum,CheckSumReturnedFromEncryptor);
+  // Now let's encrypt with the optimized encryptor
+  SaltData=1234;
+  
+  if (NumJumps == 2)
+    CheckSumReturnedFromEncryptor = xorEncryptHOP2(KeyBuf, (uint8_t *)(&SaltData), KeyCheckSum, DLen, Data2); 
+  else if (NumJumps == 3)
+    CheckSumReturnedFromEncryptor = xorEncryptHOP3(KeyBuf, (uint8_t *)(&SaltData), KeyCheckSum, DLen, Data2); 
+  else if (NumJumps == 4)
+    CheckSumReturnedFromEncryptor = xorEncryptHOP4(KeyBuf, (uint8_t *)(&SaltData), KeyCheckSum, DLen, Data2); 
+  else exit(-1);
+  
+  
+  if (OriginalPlainTextCheckSum != CheckSumReturnedFromEncryptor)
+  {
+    printf("Original Checksum %llu returned from BufChecksum fnc <> Checksum %llu returned from optimized encryptor\n",OriginalPlainTextCheckSum,CheckSumReturnedFromEncryptor);
+    exit(-1);
+  } else printf("OriginalPlainTextCheckSum %llu = CheckSumReturnedFromOptimizedEncryptor %llu :: SUCCESS!\n",OriginalPlainTextCheckSum,CheckSumReturnedFromEncryptor);  
+  if (memcmp((char *)Data, Data2, DLen) != 0)
+  {
+    printf("Non-optimized and optimized encryptor functions outputs are different! FAILED! FAILED!\n");
+    exit(-1);
+  }
+    
+  Base64CipherText = Base64Encode((const char *)Data, DLen);
+  printf("Base64CipherText: %s\n", Base64CipherText);
+  printf("\n\nDecryption process:\n\n");
+  SaltData=1234;
+  uint8_t *K = (uint8_t *)Base64Decode(Base64EncodedKeyStr);
+  
+  if (memcmp((char *)KeyBuf, (char *)K, RawKeyLen) != 0)
+  {
+    printf("Original key and base64 encoded and decoded keys are different!!!!!\n");
+    exit(-1);
+  }
+  
+  if (NumJumps == 2)
+    CheckSumReturnedFromDecryptor = xorDecryptHOP2(K, (uint8_t *)(&SaltData), KeyCheckSum, DLen, Data);
+  else if (NumJumps == 3)
+    CheckSumReturnedFromDecryptor = xorDecryptHOP3(K, (uint8_t *)(&SaltData), KeyCheckSum, DLen, Data);
+  else if (NumJumps == 4)
+    CheckSumReturnedFromDecryptor = xorDecryptHOP4(K, (uint8_t *)(&SaltData), KeyCheckSum, DLen, Data);
+  else exit(-1);
+  
+  if (OriginalPlainTextCheckSum != CheckSumReturnedFromDecryptor)
+  {
+    printf("Original Checksum %llu returned from BufChecksum fnc <> Checksum %llu returned from HOP decyptor\n",OriginalPlainTextCheckSum,CheckSumReturnedFromDecryptor);
+    exit(-1);
+  } else printf("OriginalPlainTextCheckSum %llu = CheckSumReturnedFromDecryptor %llu :: SUCCESS!\n",OriginalPlainTextCheckSum,CheckSumReturnedFromDecryptor);
+  
+  if (memcmp((char *)Data, TESTSTR1, DLen) == 0)
+  {
+    printf("String: %s ... Test1 result: SUCCESSFUL!!!!\n----------------------------------------\n", Data);
+  }
+  else {
+    printf("String: %s ... Test1 result: FAILED!!!!\n----------------------------------------\n", Data);
+    exit(-1);
+  }
+  //exit(-1);
+}
+```
 
 ... I am still writing the documentation --- to be continued ---
