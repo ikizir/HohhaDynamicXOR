@@ -65,7 +65,7 @@ Now, we have 2^79 brute force algorithmic complexity just to know "the jump star
 Considering we have only the key body, for every byte to be encrypted, there are 128 * 128 * 128 possibilities to obtain the number to be finally XORed with plaintext byte! 
 And every time we encrypt a byte from plaintext, we encrypt a byte from key body!
 
-Consequently, considering the algorithm "leaks" data about the key; a "minimum" brute force attack complexity is 2^100. It is really the minimum base to tell anything meaningful about key! Again: Not the complexity to break it! To obtain the minimum information possible about the key!
+When the "analyze" begins: I don't want to give huge numbers, but the rest of analyze, considering 128^3 possibilities on key body, for every byte encrypted, seems "practically impossible" to realize. Am I wrong?
 
 As I told you, I am not an expert.
 I don't claim it is "impossible" to break.But those are the base numbers. I may be wrong. And this is a public place. Correct me if I am wrong please!
