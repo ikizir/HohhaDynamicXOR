@@ -44,6 +44,25 @@ The code is constantly updated and improved.
 
 Please feel free to test it and share your success or faux-pas: ikizir@gmail.com
 
+## Reliability
+
+Some people ask me, how reliable it is and why I don't use approved algorithm.
+A "really professional" guy, on an encryption mailing list, full of "Security Gods"(One of them wrote me privately and he was the head of cryptology chair on a reputable US Univesity for example), asked me "why don't I use DES for example. What is the difference, why is it more secure?"
+
+Here is why.
+Let's have a key body of just 128 random bytes, and 3 as the number of jumps. Forget the key body length now. 
+For "every transaction", we send 8 bytes of Salt(or nonce) data unique for that transaction! Which adds 2^64 complexity.
+For every transaction, we also use 1 byte of crc key checksum data. Which adds 2^8 complexity. Which makes, 2^72 possibilities for each bytes encrypted. Because, anytime, any bit of this values change, entire "jump path" and the "entire" ciphertext will be different! Those are the essential parameters besides key body elements for each byte to be encrypted! At least 2^72 complexity brute force attack is necessary just to make any meaningful analysis. Not breaking! Just analyzing!
+
+Hey! We don't count the key body into consideration yet! This is just the randomness we add to encyrption for each operation. 
+And huh! Even without taking key body into account; we are above the security level provided by DES; which has 2^56 complexity for brute force attacks.
+Considering we have only the key body, for every byte to be encrypted, there are 128*128*128 possibilities to obtain the number to be finally XORed with plaintext byte! 
+And every time we encrypt a byte from plaintext, we encrypt a byte from key body!
+
+As I told you, I am not an expert.
+I don't claim it is "impossible" to break.But those are the base numbers. 
+I just tell, for example, for my specific needs in a chat application, where the keys are not used for a very long time, it seems enough. It is up to you to decide. Take your own risk! Think carefully when to use, where to use it! All I can do is to share my ideas transparently.
+
 ## Usage
 ```C
 void xorGetKey(uint8_t NumJumps, uint32_t BodyLen, uint8_t *KeyBuf);
