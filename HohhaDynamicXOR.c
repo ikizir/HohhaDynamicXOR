@@ -531,7 +531,7 @@ PlainTextChecksum += LastVal;
 
 uint64_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
 { // Encrypts message and returns checksum of the InOutBuf BEFORE encyption
-  // SaltData is a 4 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
+  // SaltData is a 8 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
   register uint32_t tt, M;
   register size_t t;
   register uint8_t XORVal, LastVal = 0,TmpVal; // Last PLAINTEXT byte processed. It will be an input parameter for the next encryption
@@ -582,7 +582,7 @@ uint64_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOut
 } 
 uint64_t xorDecrypt(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
 { // Decrypts message and returns checksum of the InOutBuf AFTER encyption
-  // SaltData is a 4 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
+  // SaltData is a 8 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
   register uint32_t tt, M;
   register size_t t;
   register uint8_t XORVal, LastVal = 0; // Last PLAINTEXT byte processed. It will be an input parameter for the next encrytpion
@@ -634,7 +634,7 @@ uint64_t xorDecrypt(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOut
 
 uint64_t xorEncryptHOP2(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
 { // Encrypts message and returns checksum of the InOutBuf BEFORE encyption
-  // SaltData is a 4 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
+  // SaltData is a 8 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
   register uint32_t M;
   register size_t t;
   register uint8_t XORVal, LastVal = 0,TmpVal; // Last PLAINTEXT byte processed. It will be an input parameter for the next encrytpion
@@ -675,7 +675,7 @@ uint64_t xorEncryptHOP2(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t I
 
 uint64_t xorDecryptHOP2(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
 { // Decrypts message and returns checksum of the InOutBuf BEFORE encyption
-  // SaltData is a 4 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
+  // SaltData is a 8 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
   register uint32_t M;
   register size_t t;
   register uint8_t XORVal, LastVal = 0; // Last PLAINTEXT byte processed. It will be an input parameter for the next encrytpion
@@ -716,7 +716,7 @@ uint64_t xorDecryptHOP2(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t I
 } 
 uint64_t xorEncryptHOP3(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
 { // Encrypts or decrypts message and returns checksum of the InOutBuf BEFORE encyption
-  // SaltData is a 4 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
+  // SaltData is a 8 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
   register uint32_t M;
   register size_t t;
   register uint8_t XORVal, LastVal = 0,TmpVal; // Last PLAINTEXT byte processed. It will be an input parameter for the next encrytpion
@@ -759,7 +759,7 @@ uint64_t xorEncryptHOP3(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t I
 
 uint64_t xorDecryptHOP3(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
 { // Encrypts or decrypts message and returns checksum of the InOutBuf BEFORE encyption
-  // SaltData is a 4 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
+  // SaltData is a 8 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
   register uint32_t M;
   register size_t t;
   register uint8_t XORVal, LastVal = 0; // Last PLAINTEXT byte processed. It will be an input parameter for the next encrytpion
@@ -803,7 +803,7 @@ uint64_t xorDecryptHOP3(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t I
 
 uint64_t xorEncryptHOP4(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
 { // Encrypts or decrypts message and returns checksum of the InOutBuf BEFORE encyption
-  // SaltData is a 4 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
+  // SaltData is a 8 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
   register uint32_t M;
   register size_t t;
   register uint8_t XORVal, LastVal = 0,TmpVal; // Last PLAINTEXT byte processed. It will be an input parameter for the next encrytpion
@@ -848,7 +848,7 @@ uint64_t xorEncryptHOP4(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t I
 
 uint64_t xorDecryptHOP4(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
 { // Encrypts or decrypts message and returns checksum of the InOutBuf BEFORE encyption
-  // SaltData is a 4 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
+  // SaltData is a 8 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
   register uint32_t M;
   register size_t t;
   register uint8_t XORVal, LastVal = 0; // Last PLAINTEXT byte processed. It will be an input parameter for the next encrytpion
