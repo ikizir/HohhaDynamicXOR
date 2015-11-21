@@ -1416,6 +1416,7 @@ int64_t EncryptFile(const char *InFileName, const char *OutFileName, uint8_t *Ke
   close(FDesc);
   return CheckSum;
 }
+
 int64_t EncryptBMPFile(const char *InFileName, const char *OutFileName, uint8_t *KeyBuf, uint32_t KeyCheckSum)
 { // Encrypts a bmp file for visual attack
   int32_t FDesc;   
@@ -1443,7 +1444,7 @@ int64_t EncryptBMPFile(const char *InFileName, const char *OutFileName, uint8_t 
     return -1;
   }
   // Copy original header to a buffer
-  memcpy(OriginalHeader, Data, 255);
+  memcpy(OriginalHeader, Data, 54);
   close(FDesc);
   
   //GetRandomNumbers(8, (uint8_t *)(&SaltData));
@@ -1466,7 +1467,7 @@ int64_t EncryptBMPFile(const char *InFileName, const char *OutFileName, uint8_t 
     return -1;
   }
   // Copy original header to encrypted file in order to see it on a browser
-  memcpy(Data, OriginalHeader, 255);
+  memcpy(Data, OriginalHeader, 54);
   if (write(FDesc,Data,Len) != Len)
   {
     printf("Error writing file!\n");
@@ -1476,6 +1477,7 @@ int64_t EncryptBMPFile(const char *InFileName, const char *OutFileName, uint8_t 
   close(FDesc);
   return CheckSum;
 }
+
 
 #define SAMPLE_FILE_PATH "/home/ikizir/Downloads/panda.bmp"
   #define SAMPLE_OUT_FILE_PATH "/home/ikizir/Downloads/panda_enc.bmp"
