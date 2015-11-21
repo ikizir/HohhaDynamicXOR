@@ -170,7 +170,8 @@ Every key is created with it's own Salt(or iv) value.
 This Salt must "only" be used to encrypt salt values. For each encryption.
 When you want to encrypt a data, you must first create an 8 random bytes as Salt value of that encryption. Let's call it Nonce.
 You must encrypt your data with Nonce; you must encrypt Nonce with key's original salt and transmit ciphertext and salt to receiver.
-It is extremely crucial to transmit Nonce secretly. Or, your encryption is nearly useless. This is the unique weakness of algorithm I've detected so far.
+It is extremely crucial to transmit Nonce secretly. Or, your encryption is nearly useless. This is the unique weakness of algorithm I've detected so far: If the attacker intercepts both the plaintext AND the actual salt(nonce) used for encryption, algorithm will be vulnerable.
+If the attacker intercepts just the plaintext, but not the nonce; it is not an issue. 
 
 #### Encryption and decryption
 
