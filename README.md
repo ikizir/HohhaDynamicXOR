@@ -1,4 +1,4 @@
-This version is leaking keys. We are working on random distribution.
+Randomness assured. Key doesn't leak anymore. I am going to add "visual proofs" to README. Test it please
 # HohhaDynamicXOR
 Hohha Dynamic XOR Encryption Algorithm Theory and its C implementation:
 
