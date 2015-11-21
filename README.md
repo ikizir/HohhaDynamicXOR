@@ -19,7 +19,7 @@ I'd rather prefer to try to develop my own and improve it by seeing my mistakes 
 
 I am not a "crypto expert", I haven't mathematical background to prove that's "secure", as the "authorities" do!  
 But I believe in common sense and collaboration.
-I'd rather prefer to try to improve transparently a collaborative work, instead of relying on suspicious "Cryptoanalysis Gods" and "Authorities"!
+I'd rather prefer to try to improve transparently a collaborative work, than relying on suspicious "Cryptoanalysis Gods" and "Authorities"!
 If you think it is breakable, you're welcome, this is why it's in public domain. Please tell us "how"! Let's think together and improve it. 
 We will all use this for our specific needs. And if we think carefully, we can adapt it to different requirements. Nobody prevents us from creating derivatives. This is freedom and the spirit of "open source".
 
