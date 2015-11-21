@@ -69,7 +69,7 @@ uint64_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOu
   for (t=0; t<InOutDataLen; t++)
   {  
     // On first jump, we take previous encrypted byte and we jump to another position depending on its value
-    XORVal = LastCipherTextVal ^ Body[M]; 
+    XORVal = (Checksum&8) ^ Body[M]; 
     M = (M ^ LastCipherTextVal) & BodyMask; 
     
     XORVal ^= Body[M]; 
