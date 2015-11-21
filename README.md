@@ -1,4 +1,3 @@
-Randomness assured. Key doesn't leak anymore. I am going to add "visual proofs" to README. Test it please
 # HohhaDynamicXOR
 Hohha Dynamic XOR Encryption Algorithm Theory and its C implementation:
 
@@ -39,12 +38,12 @@ So, every time we encrypt a byte, we also change the key. *It's a bit more compl
 
 Here is the encryption code:
 ```C
-uint64_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
+uint64_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
 { // Encrypts message and returns checksum of the InOutBuf BEFORE encyption
   // SaltData is a 8 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
   register uint32_t tt, M;
   register size_t t;
-  register uint8_t XORVal, LastVal = 0,TmpVal; // Last PLAINTEXT byte processed. It will be an input parameter for the next encryption
+  register uint8_t XORVal, LastPlainTextVal = 0, LastCipherTextVal = 0; // Last PLAINTEXT byte processed. It will be an input parameter for the next encryption
   register uint64_t Checksum=0;
   register uint32_t BodyMask = GetBodyLen(K); // +1 because we will use this "Mersenne number" for & operation instead of modulus operation
   uint8_t Body[MAX_BODY_SIZE];
@@ -52,26 +51,29 @@ uint64_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOut
   memcpy(Body,K+SP_BODY,BodyMask);
   BodyMask--;
   
-  Salt[0] ^= KeyCheckSum; LastVal += Salt[0];
-  Salt[1] ^= KeyCheckSum; LastVal += Salt[1]; 
-  Salt[2] ^= KeyCheckSum; LastVal += Salt[2]; 
-  Salt[3] ^= KeyCheckSum; LastVal += Salt[3]; 
-  Salt[4] ^= KeyCheckSum; LastVal += Salt[4]; 
-  Salt[5] ^= KeyCheckSum; LastVal += Salt[5]; 
-  Salt[6] ^= KeyCheckSum; LastVal += Salt[6]; 
-  Salt[7] ^= KeyCheckSum; LastVal += Salt[7]; 
+  // We compute our start values as much randomly as possible upon salt(or nonce or iv) value which is transmitted with every data to be encrypted or decrypted
+  LastCipherTextVal = Salt[0];
+  LastCipherTextVal &= Salt[1]; 
+  LastCipherTextVal ^= Salt[2]; 
+  LastCipherTextVal &= Salt[3]; 
+  LastCipherTextVal ^= Salt[4]; 
+  LastCipherTextVal &= Salt[5]; 
+  LastCipherTextVal ^= Salt[6]; 
+  LastCipherTextVal &= Salt[7]; 
   
-  // Initial position of the pointer depends on actual salt value
-  M = (BodyMask & Salt[LastVal&(SALT_SIZE-1)]);
-  //printf("xorEncrypt BodyLen: %u KeyCheckSum: %u Salt: %u\n",BodyLen, KeyCheckSum,Salt);
+  // Our initial jump position in the key body depends on a random value
+  M = (BodyMask & Salt[LastCipherTextVal&(SALT_SIZE-1)]);
   
   for (t=0; t<InOutDataLen; t++)
-  {
-    // In first two jumps, we take 4 bits of each key body element
-    XORVal = Body[M] & 0b11110000U; 
-    M = (M ^ LastVal) & BodyMask; 
-    XORVal |= (Body[M] & 0b00001111U); 
-    M = (M ^ LastVal) & BodyMask; 
+  {  
+    // On first jump, we take previous encrypted byte and we jump to another position depending on its value
+    XORVal = LastCipherTextVal ^ Body[M]; 
+    M = (M ^ LastCipherTextVal) & BodyMask; 
+    
+    XORVal ^= Body[M]; 
+    XORVal ^= (1 << (KeyCheckSum&31)); 
+    KeyCheckSum = ROL32_1(KeyCheckSum);
+    M = (M ^ (*(Salt + (LastPlainTextVal&(SALT_SIZE-1))))) & BodyMask; 
     
     for (tt=2; tt < GetNumJumps(K); tt++)
     {
@@ -80,15 +82,14 @@ uint64_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOut
       M = (M ^ Body[M]) & BodyMask; 
     }
     Checksum += InOutBuf[t]; 
-    TmpVal = InOutBuf[t]; 
-    XORVal ^= LastVal; 
-    XORVal ^= *(Salt + (LastVal&(SALT_SIZE-1)));
+    LastCipherTextVal = InOutBuf[t]; 
+    
+    XORVal ^= (1 << (M&7)); 
     InOutBuf[t] ^= ((uint8_t)(XORVal));
-    LastVal = TmpVal; 
-
-    Body[M] = ROL32_1(Body[M]); 
-    Body[M]++;
-    Body[M] ^= LastVal;
+    LastPlainTextVal = LastCipherTextVal; 
+    LastCipherTextVal = InOutBuf[t];
+    
+    Body[M] ^= LastCipherTextVal;
   }
   return Checksum;
 } 
@@ -99,11 +100,15 @@ Briefly, to decypher a ciphertext, a cracker needs to find out the key, and, to 
 
 I believe this algorithm is the future of encryption. It may not be perfect. However, I believe, this "dynamic key" model is the right way for encryption security. This project is in the public domain, thus public property, and I believe we all can benefit greatly from it. By Open Sourcing this code, I hope to make it faster and stronger together.
 
-The code is constantly updated and improved. 
+As demonstrated by the visual proofs at my blog http://ismail-kizir.blogspot.com.tr/2015/11/visual-proofs-of-hohha-dynamic-xor.html
+the algorithm is quite mature and has a good random distribution.
+
 
 Please feel free to test it and share your success or faux-pas: ikizir@gmail.com
 
 ## Reliability
+
+Better see it yourself first: http://ismail-kizir.blogspot.com.tr/2015/11/visual-proofs-of-hohha-dynamic-xor.html
 
 Some people ask me, how reliable it is and why I don't use approved algorithm.
 A "really professional" guy, on an encryption mailing list, full of "Security Gods"(One of them wrote me privately and he was the head of cryptology chair on a reputable US Univesity for example), asked me "why don't I use DES for example. What is the difference, why is it more secure?"
@@ -132,7 +137,7 @@ I just tell, for example, for my specific needs in a chat application, where the
 Each user pair will use 4 jump level keys with 1024 byte key body for their private chats. I think, it is fairly enough.
 It is up to you to decide. Take your own risk! Think carefully when to use, where to use it! All I can do is to share my ideas transparently.
 
-The algorithm is not safe against side channel or any physical type of attack. You must take care of your phone or computer.
+There isn't any specific precautions against side channel or any physical type of attack. You must take care of your phone or computer.
 
 ## Usage
 ```C
@@ -146,20 +151,20 @@ It has negligible impact on the speed of the algorithm, but a direct impact on s
 
 KeyBuf is pointer to an "already allocated" buffer to hold the entire key. To compute the size of the resulting key, you may use xorComputeKeyBufLen macro.
 
-Suppose that we want to create a key with 4 jumps and a body size of 1024 bytes. The code will be:
+Suppose that we want to create a key with 2 jumps and a body size of 128 bytes, which are fairly enough for most cases. The code will be:
 
 ```C
-#define BODY_LEN 1024
-#define NUM_JUMPS 4
+#define BODY_LEN 128
+#define NUM_JUMPS 2
 
-uint8_t KeyCheckSum;
+uint32_t KeyCheckSum;
 unsigned RawKeyLen = xorComputeKeyBufLen(BODY_LEN);
 uint8_t *KeyBuf = (uint8_t *)malloc(RawKeyLen);
 xorGetKey(NumJumps, BodyLen, KeyBuf);
 KeyCheckSum = xorComputeKeyCheckSum(KeyBuf);
 ```
 
-KeyCheckSum is the 8 bit CRC checksum of the key. Every time you create a key, you must also compute its checksum. In order to use the key for encryption, or decryption, we must give that checksum as a parameter.
+KeyCheckSum is the 32 bit CRC checksum of the key. Every time you create a key, you must also compute its checksum. In order to use the key for encryption, or decryption, we must give that checksum as a parameter.
 Now, we have the key and the checksum. We want to encrypt our data.
 
 #### Encryption and decryption
@@ -167,14 +172,14 @@ Now, we have the key and the checksum. We want to encrypt our data.
 We have generic functions to encrypt or decrypt data, but, we don't suggest using them in real life. Instead, use, hand optimized HOPx versions. For 2 jump keys, use HOP2 versions, for 3 jumps use HOP3 etc.
 
 ```C
-uint64_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf);
-uint64_t xorDecrypt(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
-uint64_t xorEncryptHOP2(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf);
-uint64_t xorDecryptHOP2(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf);
-uint64_t xorEncryptHOP3(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf);
-uint64_t xorDecryptHOP3(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf);
-uint64_t xorEncryptHOP4(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf);
-uint64_t xorDecryptHOP4(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf);
+uint64_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf);
+uint64_t xorDecrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
+uint64_t xorEncryptHOP2(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf);
+uint64_t xorDecryptHOP2(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf);
+uint64_t xorEncryptHOP3(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf);
+uint64_t xorDecryptHOP3(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf);
+uint64_t xorEncryptHOP4(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf);
+uint64_t xorDecryptHOP4(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf);
 ```
 xorEncrypt encrypts data:
 K is the key buffer we created earlier as shown in the example above.
@@ -183,7 +188,7 @@ Salt(or nonce, or iv whatever you want to call) is a 8 bytes long random value a
 void GetRandomNumbers(uint32_t ByteCount, uint8_t *Buffer)
 ```
 
-KeyCheckSum is the 8 bit CRC we obtained via xorComputeKeyCheckSum macro as shown in the example
+KeyCheckSum is the 32 bit CRC we obtained via xorComputeKeyCheckSum macro as shown in the example
 InOutDataLen is the number of bytes to be encrypted.
 InOutBuf is the input and also output buffer. 
 On return, functions return a uint64_t checksum of the plaintext.
@@ -206,7 +211,7 @@ void Test1(unsigned NumJumps, unsigned BodyLen)
   uint8_t *KeyBuf = (uint8_t *)malloc(RawKeyLen);
   uint8_t Data[2048],Data2[2048];
   char *Base64EncodedKeyStr, *Base64CipherText;
-  uint8_t KeyCheckSum;
+  uint32_t KeyCheckSum;
   uint64_t SaltData=1234;
   
   printf("----------- TEST 1: BASIC FUNCTIONALITY(%u Jumps) --------------\n",NumJumps);
@@ -262,6 +267,7 @@ void Test1(unsigned NumJumps, unsigned BodyLen)
     printf("Original key and base64 encoded and decoded keys are different!!!!!\n");
     exit(-1);
   }
+  //CheckSumReturnedFromDecryptor = xorDecrypt(K, (uint8_t *)(&SaltData), KeyCheckSum, DLen, Data);
   
   if (NumJumps == 2)
     CheckSumReturnedFromDecryptor = xorDecryptHOP2(K, (uint8_t *)(&SaltData), KeyCheckSum, DLen, Data);
