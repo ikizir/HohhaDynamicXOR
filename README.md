@@ -118,15 +118,12 @@ A "really professional" guy, on an encryption mailing list, full of "Security Go
 Here is why.
 Let's have a key body of just 128 random bytes, and 3 as the number of jumps. Forget the key body length now. 
 For "every transaction", we send 8 bytes of Salt(or nonce) data unique for that transaction! Which adds 2^64 complexity.
-For every transaction, we also use 1 byte of crc key checksum data. Which adds 2^8 complexity. Which makes, 2^72 as the lowest limit for any meaningful attack. Because, anytime, any bit of this values change, entire "jump path" and the "entire" ciphertext will be different! Those are the essential parameters besides key body elements for each byte to be encrypted! At least 2^72 complexity brute force attack is necessary just to make any meaningful analysis. Not breaking! Just for being sure to having eliminated the random data added to every encryption&decryption process. 
+For every transaction, we also use 4 byte of crc key checksum data. Which adds 2^32 complexity. Which makes, 2^96 as the lowest limit for any meaningful attack. Because, anytime, any bit of this values change, entire "jump path" and the "entire" ciphertext will be different! Those are the essential parameters besides key body elements for each byte to be encrypted! At least 2^96 complexity brute force attack is necessary just to make any meaningful analysis. Not breaking! Just for being sure to having eliminated the random data added to every encryption&decryption process. 
 
 Hey! We don't take the key body into consideration yet! That was just for the randomness we add to encyrption for each operation. 
 And huh! Even without taking key body into consideration; we are above the security level provided by DES; which has 2^56 complexity for brute force attacks and approved by "authorities" to protect sensible data unce open a time!
 
-The "starting" point of the data is randomly chosen upon the salt value.
-So, just to "anaylyze" or "detect" which is the "starting" position of the jump for an encryption or decryption process, we must add 2^7 possibilities.
-
-Now, we have 2^79 brute force algorithmic complexity just to know "the jump starting point"! Again! Without taking into consideration key body! Just to start to a "meaningful attack"!
+Now, we have 2^96 brute force algorithmic complexity just to know "the jump starting point"! Again! Without taking into consideration key body! Just to start to a "meaningful attack"!
 
 Considering we have only the key body, for every byte to be encrypted, there are 128 * 128 * 128 possibilities to obtain the number to be finally XORed with plaintext byte! 
 And every time we encrypt a byte from plaintext, we encrypt a byte from key body!
