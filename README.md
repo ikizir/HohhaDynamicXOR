@@ -101,7 +101,7 @@ Briefly, to decypher a ciphertext, a cracker needs to find out the key, and, to 
 I believe this algorithm is the future of encryption. It may not be perfect. However, I believe, this "dynamic key" model is the right way for encryption security. This project is in the public domain, thus public property, and I believe we all can benefit greatly from it. By Open Sourcing this code, I hope to make it faster and stronger together.
 
 As demonstrated by the visual proofs at my blog http://ismail-kizir.blogspot.com.tr/2015/11/visual-proofs-of-hohha-dynamic-xor.html
-the algorithm is quite mature and has a good random distribution.
+the algorithm is quite young but seems to have a good random distribution and promising. We are constantly working on it to improve.
 
 
 Please feel free to test it and share your success or faux-pas: ikizir@gmail.com
