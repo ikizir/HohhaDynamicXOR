@@ -7,7 +7,9 @@ What I am doing, is not something I desire.
 The history of "approved standards" is a proof to not to trust to so called "Security Authorities", "Experts" or "Cryptography Gods".
 Do you want proof:
 https://en.wikipedia.org/wiki/Transport_Layer_Security
-This is a "proof"! A real proof to not to trust to "approved standarts"!
+This is a "proof"! A real proof to not to trust to "approved standarts"! Not enough? Try this one:
+https://vikingvpn.com/blogs/security/visualizing-weak-encryption-experiments-with-aes
+and see with your own eyes what "protected" our secrecy for years!
 
 SSL 3.0 doesn't include "any" secure encryption implementation.
 AES 256 CBC is not included in TLS 1.3 draft.
