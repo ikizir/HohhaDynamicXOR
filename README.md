@@ -166,6 +166,12 @@ KeyCheckSum = xorComputeKeyCheckSum(KeyBuf);
 KeyCheckSum is the 32 bit CRC checksum of the key. Every time you create a key, you must also compute its checksum. In order to use the key for encryption, or decryption, we must give that checksum as a parameter.
 Now, we have the key and the checksum. We want to encrypt our data.
 
+Every key is created with it's own Salt(or iv) value.
+This Salt must "only" be used to encrypt salt values. For each encryption.
+When you want to encrypt a data, you must first create an 8 random bytes as Salt value of that encryption. Let's call it Nonce.
+You must encrypt your data with Nonce; you must encrypt Nonce with key's original salt and transmit ciphertext and salt to receiver.
+It is extremely crucial to transmit Nonce secretly. Or, your encryption is nearly useless. This is the unique weakness of algorithm I've detected so far.
+
 #### Encryption and decryption
 
 We have generic functions to encrypt or decrypt data, but, we don't suggest using them in real life. Instead, use, hand optimized HOPx versions. For 2 jump keys, use HOP2 versions, for 3 jumps use HOP3 etc.
