@@ -211,7 +211,11 @@ void Test1(unsigned NumJumps, unsigned BodyLen)
   uint8_t Data[2048],Data2[2048];
   char *Base64EncodedKeyStr, *Base64CipherText;
   uint32_t KeyCheckSum;
-  uint64_t SaltData=1234;
+  uint64_t OriginalSaltData, SaltData;
+  
+  
+  GetRandomNumbers(SALT_SIZE, (uint8_t *)&OriginalSaltData); // Fill salt data with random numbers
+  SaltData = OriginalSaltData;
   
   printf("----------- TEST 1: BASIC FUNCTIONALITY(%u Jumps) --------------\n",NumJumps);
   xorGetKey(NumJumps, BodyLen, KeyBuf);
@@ -233,7 +237,7 @@ void Test1(unsigned NumJumps, unsigned BodyLen)
     exit(-1);
   } else printf("OriginalPlainTextCheckSum %llu = CheckSumReturnedFromEncryptor %llu :: SUCCESS!\n",OriginalPlainTextCheckSum,CheckSumReturnedFromEncryptor);
   // Now let's encrypt with the optimized encryptor
-  SaltData=1234;
+  SaltData=OriginalSaltData;
   
   if (NumJumps == 2)
     CheckSumReturnedFromEncryptor = xorEncryptHOP2(KeyBuf, (uint8_t *)(&SaltData), KeyCheckSum, DLen, Data2); 
@@ -258,7 +262,7 @@ void Test1(unsigned NumJumps, unsigned BodyLen)
   Base64CipherText = Base64Encode((const char *)Data, DLen);
   printf("Base64CipherText: %s\n", Base64CipherText);
   printf("\n\nDecryption process:\n\n");
-  SaltData=1234;
+  SaltData=OriginalSaltData;
   uint8_t *K = (uint8_t *)Base64Decode(Base64EncodedKeyStr);
   
   if (memcmp((char *)KeyBuf, (char *)K, RawKeyLen) != 0)
@@ -293,5 +297,8 @@ void Test1(unsigned NumJumps, unsigned BodyLen)
   //exit(-1);
 }
 ```
+In real life scenarios, it is crucial to transmit Salt data secretly.
+In order to realize this, you must create a random salt; use that random salt to encrypt the plaintext and you must encrypt the data with the key, using key's original salt data.
+The receiver will first decrypt the salt data using key's original salt data in order to obtain actual salt data, then will decrypt the ciphertext using this actual salt data. I am going to publish source code examples here.
 
 ... I am still writing the documentation --- to be continued ---
