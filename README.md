@@ -138,7 +138,10 @@ It is up to you to decide. Take your own risk! Think carefully when to use, wher
 
 There isn't any specific precautions against side channel or any physical type of attack. You must take care of your phone or computer.
 
-So far, we detected a "unique" vulnarability, which can be "theoretically" defended by the "Crypto Experts": Intercepting both the plaintext AND the salt(nonce). But we consider it only "theoretical" because, key's original salt value is only used to encrypt&decrypt salt values to be transmitted with each ciphertext. Salt values are random by nature. If someone claims this "theoretical possibility", he must also explain us "how" he can intercept the nonce value!
+So far, we detected a "unique" vulnarability, which can be "theoretically" defended by the "Crypto Experts": Intercepting both the plaintext AND the salt(nonce). But we consider it only "theoretical" because, key's original salt value is only used to encrypt&decrypt salt values to be transmitted with each ciphertext. Salt values are random by nature. If someone claims this "theoretical possibility", he must also explain us "how" he can intercept the nonce value! But anyway, a "theoretical possibility" is still a threat and you must consider this possibility in your real life applications.
+
+I am still looking for ways to better "hide" key body elements against this possibility, but, it doesn't seem feasible without trading too much speed.
+
 ## Usage
 ```C
 void xorGetKey(uint8_t NumJumps, uint32_t BodyLen, uint8_t *KeyBuf);
