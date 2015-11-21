@@ -324,47 +324,120 @@ uint8_t *CreateDataBuf(Size)
   return (uint8_t *)calloc(1, Size);
 }
 
-/* 8-bit CRC with polynomial x^8+x^6+x^3+x^2+1, 0x14D.
-   Chosen based on Koopman, et al. (0xA6 in his notation = 0x14D >> 1):
-   http://www.ece.cmu.edu/~koopman/roses/dsn04/koopman04_crc_poly_embedded.pdf
+/* -*- c++ -*- */
+/*
+ * Copyright 2005,2011 Free Software Foundation, Inc.
+ * 
+ * This file is part of GNU Radio
+ * 
+ * GNU Radio is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3, or (at your option)
+ * any later version.
+ * 
+ * GNU Radio is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with GNU Radio; see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 51 Franklin Street,
+ * Boston, MA 02110-1301, USA.
  */
-static uint8_t crc8_table[] = {
-    0x00, 0x3e, 0x7c, 0x42, 0xf8, 0xc6, 0x84, 0xba, 0x95, 0xab, 0xe9, 0xd7,
-    0x6d, 0x53, 0x11, 0x2f, 0x4f, 0x71, 0x33, 0x0d, 0xb7, 0x89, 0xcb, 0xf5,
-    0xda, 0xe4, 0xa6, 0x98, 0x22, 0x1c, 0x5e, 0x60, 0x9e, 0xa0, 0xe2, 0xdc,
-    0x66, 0x58, 0x1a, 0x24, 0x0b, 0x35, 0x77, 0x49, 0xf3, 0xcd, 0x8f, 0xb1,
-    0xd1, 0xef, 0xad, 0x93, 0x29, 0x17, 0x55, 0x6b, 0x44, 0x7a, 0x38, 0x06,
-    0xbc, 0x82, 0xc0, 0xfe, 0x59, 0x67, 0x25, 0x1b, 0xa1, 0x9f, 0xdd, 0xe3,
-    0xcc, 0xf2, 0xb0, 0x8e, 0x34, 0x0a, 0x48, 0x76, 0x16, 0x28, 0x6a, 0x54,
-    0xee, 0xd0, 0x92, 0xac, 0x83, 0xbd, 0xff, 0xc1, 0x7b, 0x45, 0x07, 0x39,
-    0xc7, 0xf9, 0xbb, 0x85, 0x3f, 0x01, 0x43, 0x7d, 0x52, 0x6c, 0x2e, 0x10,
-    0xaa, 0x94, 0xd6, 0xe8, 0x88, 0xb6, 0xf4, 0xca, 0x70, 0x4e, 0x0c, 0x32,
-    0x1d, 0x23, 0x61, 0x5f, 0xe5, 0xdb, 0x99, 0xa7, 0xb2, 0x8c, 0xce, 0xf0,
-    0x4a, 0x74, 0x36, 0x08, 0x27, 0x19, 0x5b, 0x65, 0xdf, 0xe1, 0xa3, 0x9d,
-    0xfd, 0xc3, 0x81, 0xbf, 0x05, 0x3b, 0x79, 0x47, 0x68, 0x56, 0x14, 0x2a,
-    0x90, 0xae, 0xec, 0xd2, 0x2c, 0x12, 0x50, 0x6e, 0xd4, 0xea, 0xa8, 0x96,
-    0xb9, 0x87, 0xc5, 0xfb, 0x41, 0x7f, 0x3d, 0x03, 0x63, 0x5d, 0x1f, 0x21,
-    0x9b, 0xa5, 0xe7, 0xd9, 0xf6, 0xc8, 0x8a, 0xb4, 0x0e, 0x30, 0x72, 0x4c,
-    0xeb, 0xd5, 0x97, 0xa9, 0x13, 0x2d, 0x6f, 0x51, 0x7e, 0x40, 0x02, 0x3c,
-    0x86, 0xb8, 0xfa, 0xc4, 0xa4, 0x9a, 0xd8, 0xe6, 0x5c, 0x62, 0x20, 0x1e,
-    0x31, 0x0f, 0x4d, 0x73, 0xc9, 0xf7, 0xb5, 0x8b, 0x75, 0x4b, 0x09, 0x37,
-    0x8d, 0xb3, 0xf1, 0xcf, 0xe0, 0xde, 0x9c, 0xa2, 0x18, 0x26, 0x64, 0x5a,
-    0x3a, 0x04, 0x46, 0x78, 0xc2, 0xfc, 0xbe, 0x80, 0xaf, 0x91, 0xd3, 0xed,
-    0x57, 0x69, 0x2b, 0x15};
 
-uint8_t crc8(uint8_t crc, uint8_t *data, size_t len)
+/*
+ * See also ISO 3309 [ISO-3309] or ITU-T V.42 [ITU-V42] for a formal specification.
+ */
+
+// Automatically generated CRC function
+// polynomial: 0x104C11DB7
+unsigned int
+digital_update_crc32(unsigned int crc, const unsigned char *data, size_t len)
 {
-  uint8_t *end;
-
-  if (len == 0)
+    static const unsigned int table[256] = {
+    0x00000000U,0x04C11DB7U,0x09823B6EU,0x0D4326D9U,
+    0x130476DCU,0x17C56B6BU,0x1A864DB2U,0x1E475005U,
+    0x2608EDB8U,0x22C9F00FU,0x2F8AD6D6U,0x2B4BCB61U,
+    0x350C9B64U,0x31CD86D3U,0x3C8EA00AU,0x384FBDBDU,
+    0x4C11DB70U,0x48D0C6C7U,0x4593E01EU,0x4152FDA9U,
+    0x5F15ADACU,0x5BD4B01BU,0x569796C2U,0x52568B75U,
+    0x6A1936C8U,0x6ED82B7FU,0x639B0DA6U,0x675A1011U,
+    0x791D4014U,0x7DDC5DA3U,0x709F7B7AU,0x745E66CDU,
+    0x9823B6E0U,0x9CE2AB57U,0x91A18D8EU,0x95609039U,
+    0x8B27C03CU,0x8FE6DD8BU,0x82A5FB52U,0x8664E6E5U,
+    0xBE2B5B58U,0xBAEA46EFU,0xB7A96036U,0xB3687D81U,
+    0xAD2F2D84U,0xA9EE3033U,0xA4AD16EAU,0xA06C0B5DU,
+    0xD4326D90U,0xD0F37027U,0xDDB056FEU,0xD9714B49U,
+    0xC7361B4CU,0xC3F706FBU,0xCEB42022U,0xCA753D95U,
+    0xF23A8028U,0xF6FB9D9FU,0xFBB8BB46U,0xFF79A6F1U,
+    0xE13EF6F4U,0xE5FFEB43U,0xE8BCCD9AU,0xEC7DD02DU,
+    0x34867077U,0x30476DC0U,0x3D044B19U,0x39C556AEU,
+    0x278206ABU,0x23431B1CU,0x2E003DC5U,0x2AC12072U,
+    0x128E9DCFU,0x164F8078U,0x1B0CA6A1U,0x1FCDBB16U,
+    0x018AEB13U,0x054BF6A4U,0x0808D07DU,0x0CC9CDCAU,
+    0x7897AB07U,0x7C56B6B0U,0x71159069U,0x75D48DDEU,
+    0x6B93DDDBU,0x6F52C06CU,0x6211E6B5U,0x66D0FB02U,
+    0x5E9F46BFU,0x5A5E5B08U,0x571D7DD1U,0x53DC6066U,
+    0x4D9B3063U,0x495A2DD4U,0x44190B0DU,0x40D816BAU,
+    0xACA5C697U,0xA864DB20U,0xA527FDF9U,0xA1E6E04EU,
+    0xBFA1B04BU,0xBB60ADFCU,0xB6238B25U,0xB2E29692U,
+    0x8AAD2B2FU,0x8E6C3698U,0x832F1041U,0x87EE0DF6U,
+    0x99A95DF3U,0x9D684044U,0x902B669DU,0x94EA7B2AU,
+    0xE0B41DE7U,0xE4750050U,0xE9362689U,0xEDF73B3EU,
+    0xF3B06B3BU,0xF771768CU,0xFA325055U,0xFEF34DE2U,
+    0xC6BCF05FU,0xC27DEDE8U,0xCF3ECB31U,0xCBFFD686U,
+    0xD5B88683U,0xD1799B34U,0xDC3ABDEDU,0xD8FBA05AU,
+    0x690CE0EEU,0x6DCDFD59U,0x608EDB80U,0x644FC637U,
+    0x7A089632U,0x7EC98B85U,0x738AAD5CU,0x774BB0EBU,
+    0x4F040D56U,0x4BC510E1U,0x46863638U,0x42472B8FU,
+    0x5C007B8AU,0x58C1663DU,0x558240E4U,0x51435D53U,
+    0x251D3B9EU,0x21DC2629U,0x2C9F00F0U,0x285E1D47U,
+    0x36194D42U,0x32D850F5U,0x3F9B762CU,0x3B5A6B9BU,
+    0x0315D626U,0x07D4CB91U,0x0A97ED48U,0x0E56F0FFU,
+    0x1011A0FAU,0x14D0BD4DU,0x19939B94U,0x1D528623U,
+    0xF12F560EU,0xF5EE4BB9U,0xF8AD6D60U,0xFC6C70D7U,
+    0xE22B20D2U,0xE6EA3D65U,0xEBA91BBCU,0xEF68060BU,
+    0xD727BBB6U,0xD3E6A601U,0xDEA580D8U,0xDA649D6FU,
+    0xC423CD6AU,0xC0E2D0DDU,0xCDA1F604U,0xC960EBB3U,
+    0xBD3E8D7EU,0xB9FF90C9U,0xB4BCB610U,0xB07DABA7U,
+    0xAE3AFBA2U,0xAAFBE615U,0xA7B8C0CCU,0xA379DD7BU,
+    0x9B3660C6U,0x9FF77D71U,0x92B45BA8U,0x9675461FU,
+    0x8832161AU,0x8CF30BADU,0x81B02D74U,0x857130C3U,
+    0x5D8A9099U,0x594B8D2EU,0x5408ABF7U,0x50C9B640U,
+    0x4E8EE645U,0x4A4FFBF2U,0x470CDD2BU,0x43CDC09CU,
+    0x7B827D21U,0x7F436096U,0x7200464FU,0x76C15BF8U,
+    0x68860BFDU,0x6C47164AU,0x61043093U,0x65C52D24U,
+    0x119B4BE9U,0x155A565EU,0x18197087U,0x1CD86D30U,
+    0x029F3D35U,0x065E2082U,0x0B1D065BU,0x0FDC1BECU,
+    0x3793A651U,0x3352BBE6U,0x3E119D3FU,0x3AD08088U,
+    0x2497D08DU,0x2056CD3AU,0x2D15EBE3U,0x29D4F654U,
+    0xC5A92679U,0xC1683BCEU,0xCC2B1D17U,0xC8EA00A0U,
+    0xD6AD50A5U,0xD26C4D12U,0xDF2F6BCBU,0xDBEE767CU,
+    0xE3A1CBC1U,0xE760D676U,0xEA23F0AFU,0xEEE2ED18U,
+    0xF0A5BD1DU,0xF464A0AAU,0xF9278673U,0xFDE69BC4U,
+    0x89B8FD09U,0x8D79E0BEU,0x803AC667U,0x84FBDBD0U,
+    0x9ABC8BD5U,0x9E7D9662U,0x933EB0BBU,0x97FFAD0CU,
+    0xAFB010B1U,0xAB710D06U,0xA6322BDFU,0xA2F33668U,
+    0xBCB4666DU,0xB8757BDAU,0xB5365D03U,0xB1F740B4U,
+    };
+  
+    while (len > 0)
+    {
+      crc = table[*data ^ ((crc >> 24) & 0xff)] ^ (crc << 8);
+      data++;
+      len--;
+    }
     return crc;
-  crc ^= 0xff;
-  end = data + len;
-  do {
-    crc = crc8_table[crc ^ *data++];
-  } while (data < end);
-  return crc ^ 0xff;
 }
+
+unsigned int digital_crc32(uint8_t *buf, size_t len)
+{
+  return digital_update_crc32(0xffffffff, buf, len) ^ 0xffffffff;
+}
+
+/* ------------------------- END CRC UTILITY FUNCTIONS ----------------- */
+
 
 #define RANDOM_BUF_SIZE 8192
 uint8_t RandomBuf[RANDOM_BUF_SIZE];
@@ -445,7 +518,7 @@ static inline int ROR32_1(int v) {
   #endif
 }
 
-/* ---------------- end utility fncs */
+/* ------------------------- END UTILITY FUNCTIONS ----------------- */
 
 #define SALT_SIZE 8 // 
 #define MAX_NUM_JUMPS 64
@@ -502,7 +575,7 @@ void xorAnalyzeKey(uint8_t *K)
 /* UNOPTIMIZED VERSION for BETTER UNDERSTANDING OF THE FUNCTIONING OF THE ALGORITHM. IT IS NOT USED IN REAL LIFE. USE OPTIMIZED VERSIONS!
  * Encrypts or decrypts InOutBuf 
  * KeyBuf is the raw key buffer
- * KeyCheckSum is 8 bit CRC checksum: Used to prevent "Related key attacks". If some bits of the key changes, entire cyphertext changes
+ * KeyCheckSum is 32 bit CRC checksum: Used to prevent "Related key attacks". If some bits of the key changes, entire cyphertext changes
  * InOutDataLen is the length of the data to be encrypted or decrypted
  * InOutBuf is the pointer to the data to be encrypted or decrypted
  * Salt(or nonce) is a 4 bytes random number array.
@@ -512,9 +585,9 @@ void xorAnalyzeKey(uint8_t *K)
  * and decrypts packet body with that salt value. This method prevents "known plaintext" attacks amongst others.
  */
 
-#define xorComputeKeyCheckSum(K) crc8(0, K, SP_BODY + GetBodyLen(K))
+#define xorComputeKeyCheckSum(K) digital_crc32(K, SP_BODY + GetBodyLen(K))
 
-uint64_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
+uint64_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
 { // Encrypts message and returns checksum of the InOutBuf BEFORE encyption
   // SaltData is a 8 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
   register uint32_t tt, M;
@@ -528,14 +601,14 @@ uint64_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOut
   BodyMask--;
   
   // We compute our start values as much randomly as possible upon salt(or nonce or iv) value which is transmitted with every data to be encrypted or decrypted
-  Salt[0] ^= KeyCheckSum; LastCipherTextVal = Salt[0];
-  Salt[1] ^= KeyCheckSum; LastCipherTextVal &= Salt[1]; 
-  Salt[2] ^= KeyCheckSum; LastCipherTextVal ^= Salt[2]; 
-  Salt[3] ^= KeyCheckSum; LastCipherTextVal &= Salt[3]; 
-  Salt[4] ^= KeyCheckSum; LastCipherTextVal ^= Salt[4]; 
-  Salt[5] ^= KeyCheckSum; LastCipherTextVal &= Salt[5]; 
-  Salt[6] ^= KeyCheckSum; LastCipherTextVal ^= Salt[6]; 
-  Salt[7] ^= KeyCheckSum; LastCipherTextVal &= Salt[7]; 
+  LastCipherTextVal = Salt[0];
+  LastCipherTextVal &= Salt[1]; 
+  LastCipherTextVal ^= Salt[2]; 
+  LastCipherTextVal &= Salt[3]; 
+  LastCipherTextVal ^= Salt[4]; 
+  LastCipherTextVal &= Salt[5]; 
+  LastCipherTextVal ^= Salt[6]; 
+  LastCipherTextVal &= Salt[7]; 
   
   // Our initial jump position in the key body depends on a random value
   M = (BodyMask & Salt[LastCipherTextVal&(SALT_SIZE-1)]);
@@ -547,6 +620,8 @@ uint64_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOut
     M = (M ^ LastCipherTextVal) & BodyMask; 
     
     XORVal ^= Body[M]; 
+    XORVal ^= (1 << (KeyCheckSum&31)); 
+    KeyCheckSum = ROL32_1(KeyCheckSum);
     M = (M ^ (*(Salt + (LastPlainTextVal&(SALT_SIZE-1))))) & BodyMask; 
     
     for (tt=2; tt < GetNumJumps(K); tt++)
@@ -567,7 +642,7 @@ uint64_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOut
   }
   return Checksum;
 } 
-uint64_t xorDecrypt(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
+uint64_t xorDecrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
 { // Encrypts message and returns checksum of the InOutBuf BEFORE encyption
   // SaltData is a 8 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
   register uint32_t tt, M;
@@ -581,14 +656,14 @@ uint64_t xorDecrypt(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOut
   BodyMask--;
   
   // We compute our start values as much randomly as possible upon salt(or nonce or iv) value which is transmitted with every data to be encrypted or decrypted
-  Salt[0] ^= KeyCheckSum; LastCipherTextVal = Salt[0];
-  Salt[1] ^= KeyCheckSum; LastCipherTextVal &= Salt[1]; 
-  Salt[2] ^= KeyCheckSum; LastCipherTextVal ^= Salt[2]; 
-  Salt[3] ^= KeyCheckSum; LastCipherTextVal &= Salt[3]; 
-  Salt[4] ^= KeyCheckSum; LastCipherTextVal ^= Salt[4]; 
-  Salt[5] ^= KeyCheckSum; LastCipherTextVal &= Salt[5]; 
-  Salt[6] ^= KeyCheckSum; LastCipherTextVal ^= Salt[6]; 
-  Salt[7] ^= KeyCheckSum; LastCipherTextVal &= Salt[7]; 
+  LastCipherTextVal = Salt[0];
+  LastCipherTextVal &= Salt[1]; 
+  LastCipherTextVal ^= Salt[2]; 
+  LastCipherTextVal &= Salt[3]; 
+  LastCipherTextVal ^= Salt[4]; 
+  LastCipherTextVal &= Salt[5]; 
+  LastCipherTextVal ^= Salt[6]; 
+  LastCipherTextVal &= Salt[7]; 
   
   // Our initial jump position in the key body depends on a random value
   M = (BodyMask & Salt[LastCipherTextVal&(SALT_SIZE-1)]);
@@ -600,6 +675,8 @@ uint64_t xorDecrypt(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOut
     M = (M ^ LastCipherTextVal) & BodyMask; 
     
     XORVal ^= Body[M]; 
+    XORVal ^= (1 << (KeyCheckSum&31)); 
+    KeyCheckSum = ROL32_1(KeyCheckSum);
     M = (M ^ (*(Salt + (LastPlainTextVal&(SALT_SIZE-1))))) & BodyMask; 
     
     for (tt=2; tt < GetNumJumps(K); tt++)
@@ -620,7 +697,7 @@ uint64_t xorDecrypt(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOut
   return Checksum;
 } 
 
-uint64_t xorEncryptHOP2(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
+uint64_t xorEncryptHOP2(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
 { // Encrypts message and returns checksum of the InOutBuf BEFORE encyption
   // SaltData is a 8 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
   register uint32_t M;
@@ -634,14 +711,14 @@ uint64_t xorEncryptHOP2(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t I
   BodyMask--;
   
   // We compute our start values as much randomly as possible upon salt(or nonce or iv) value which is transmitted with every data to be encrypted or decrypted
-  Salt[0] ^= KeyCheckSum; LastCipherTextVal = Salt[0];
-  Salt[1] ^= KeyCheckSum; LastCipherTextVal &= Salt[1]; 
-  Salt[2] ^= KeyCheckSum; LastCipherTextVal ^= Salt[2]; 
-  Salt[3] ^= KeyCheckSum; LastCipherTextVal &= Salt[3]; 
-  Salt[4] ^= KeyCheckSum; LastCipherTextVal ^= Salt[4]; 
-  Salt[5] ^= KeyCheckSum; LastCipherTextVal &= Salt[5]; 
-  Salt[6] ^= KeyCheckSum; LastCipherTextVal ^= Salt[6]; 
-  Salt[7] ^= KeyCheckSum; LastCipherTextVal &= Salt[7]; 
+  LastCipherTextVal = Salt[0];
+  LastCipherTextVal &= Salt[1]; 
+  LastCipherTextVal ^= Salt[2]; 
+  LastCipherTextVal &= Salt[3]; 
+  LastCipherTextVal ^= Salt[4]; 
+  LastCipherTextVal &= Salt[5]; 
+  LastCipherTextVal ^= Salt[6]; 
+  LastCipherTextVal &= Salt[7]; 
   
   // Our initial jump position in the key body depends on a random value
   M = (BodyMask & Salt[LastCipherTextVal&(SALT_SIZE-1)]);
@@ -653,6 +730,8 @@ uint64_t xorEncryptHOP2(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t I
     M = (M ^ LastCipherTextVal) & BodyMask; 
     
     XORVal ^= Body[M]; 
+    XORVal ^= (1 << (KeyCheckSum&31)); 
+    KeyCheckSum = ROL32_1(KeyCheckSum);
     M = (M ^ (*(Salt + (LastPlainTextVal&(SALT_SIZE-1))))) & BodyMask; 
     
     Checksum += InOutBuf[t]; 
@@ -667,7 +746,7 @@ uint64_t xorEncryptHOP2(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t I
   }
   return Checksum;
 } 
-uint64_t xorDecryptHOP2(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
+uint64_t xorDecryptHOP2(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
 { // Encrypts message and returns checksum of the InOutBuf BEFORE encyption
   // SaltData is a 8 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
   register uint32_t M;
@@ -681,14 +760,14 @@ uint64_t xorDecryptHOP2(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t I
   BodyMask--;
   
   // We compute our start values as much randomly as possible upon salt(or nonce or iv) value which is transmitted with every data to be encrypted or decrypted
-  Salt[0] ^= KeyCheckSum; LastCipherTextVal = Salt[0];
-  Salt[1] ^= KeyCheckSum; LastCipherTextVal &= Salt[1]; 
-  Salt[2] ^= KeyCheckSum; LastCipherTextVal ^= Salt[2]; 
-  Salt[3] ^= KeyCheckSum; LastCipherTextVal &= Salt[3]; 
-  Salt[4] ^= KeyCheckSum; LastCipherTextVal ^= Salt[4]; 
-  Salt[5] ^= KeyCheckSum; LastCipherTextVal &= Salt[5]; 
-  Salt[6] ^= KeyCheckSum; LastCipherTextVal ^= Salt[6]; 
-  Salt[7] ^= KeyCheckSum; LastCipherTextVal &= Salt[7]; 
+  LastCipherTextVal = Salt[0];
+  LastCipherTextVal &= Salt[1]; 
+  LastCipherTextVal ^= Salt[2]; 
+  LastCipherTextVal &= Salt[3]; 
+  LastCipherTextVal ^= Salt[4]; 
+  LastCipherTextVal &= Salt[5]; 
+  LastCipherTextVal ^= Salt[6]; 
+  LastCipherTextVal &= Salt[7]; 
   
   // Our initial jump position in the key body depends on a random value
   M = (BodyMask & Salt[LastCipherTextVal&(SALT_SIZE-1)]);
@@ -700,6 +779,8 @@ uint64_t xorDecryptHOP2(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t I
     M = (M ^ LastCipherTextVal) & BodyMask; 
     
     XORVal ^= Body[M]; 
+    XORVal ^= (1 << (KeyCheckSum&31)); 
+    KeyCheckSum = ROL32_1(KeyCheckSum);
     M = (M ^ (*(Salt + (LastPlainTextVal&(SALT_SIZE-1))))) & BodyMask; 
     
     XORVal ^= (1 << (M&7)); 
@@ -714,7 +795,7 @@ uint64_t xorDecryptHOP2(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t I
   return Checksum;
 } 
 
-uint64_t xorEncryptHOP3(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
+uint64_t xorEncryptHOP3(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
 { // Encrypts message and returns checksum of the InOutBuf BEFORE encyption
   // SaltData is a 8 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
   register uint32_t M;
@@ -728,14 +809,14 @@ uint64_t xorEncryptHOP3(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t I
   BodyMask--;
   
   // We compute our start values as much randomly as possible upon salt(or nonce or iv) value which is transmitted with every data to be encrypted or decrypted
-  Salt[0] ^= KeyCheckSum; LastCipherTextVal = Salt[0];
-  Salt[1] ^= KeyCheckSum; LastCipherTextVal &= Salt[1]; 
-  Salt[2] ^= KeyCheckSum; LastCipherTextVal ^= Salt[2]; 
-  Salt[3] ^= KeyCheckSum; LastCipherTextVal &= Salt[3]; 
-  Salt[4] ^= KeyCheckSum; LastCipherTextVal ^= Salt[4]; 
-  Salt[5] ^= KeyCheckSum; LastCipherTextVal &= Salt[5]; 
-  Salt[6] ^= KeyCheckSum; LastCipherTextVal ^= Salt[6]; 
-  Salt[7] ^= KeyCheckSum; LastCipherTextVal &= Salt[7]; 
+  LastCipherTextVal = Salt[0];
+  LastCipherTextVal &= Salt[1]; 
+  LastCipherTextVal ^= Salt[2]; 
+  LastCipherTextVal &= Salt[3]; 
+  LastCipherTextVal ^= Salt[4]; 
+  LastCipherTextVal &= Salt[5]; 
+  LastCipherTextVal ^= Salt[6]; 
+  LastCipherTextVal &= Salt[7]; 
   
   // Our initial jump position in the key body depends on a random value
   M = (BodyMask & Salt[LastCipherTextVal&(SALT_SIZE-1)]);
@@ -747,6 +828,8 @@ uint64_t xorEncryptHOP3(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t I
     M = (M ^ LastCipherTextVal) & BodyMask; 
     
     XORVal ^= Body[M]; 
+    XORVal ^= (1 << (KeyCheckSum&31)); 
+    KeyCheckSum = ROL32_1(KeyCheckSum);
     M = (M ^ (*(Salt + (LastPlainTextVal&(SALT_SIZE-1))))) & BodyMask; 
     
     // All following jumps are based on body values
@@ -765,7 +848,7 @@ uint64_t xorEncryptHOP3(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t I
   }
   return Checksum;
 } 
-uint64_t xorDecryptHOP3(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
+uint64_t xorDecryptHOP3(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
 { // Encrypts message and returns checksum of the InOutBuf BEFORE encyption
   // SaltData is a 8 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
   register uint32_t M;
@@ -779,14 +862,14 @@ uint64_t xorDecryptHOP3(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t I
   BodyMask--;
   
   // We compute our start values as much randomly as possible upon salt(or nonce or iv) value which is transmitted with every data to be encrypted or decrypted
-  Salt[0] ^= KeyCheckSum; LastCipherTextVal = Salt[0];
-  Salt[1] ^= KeyCheckSum; LastCipherTextVal &= Salt[1]; 
-  Salt[2] ^= KeyCheckSum; LastCipherTextVal ^= Salt[2]; 
-  Salt[3] ^= KeyCheckSum; LastCipherTextVal &= Salt[3]; 
-  Salt[4] ^= KeyCheckSum; LastCipherTextVal ^= Salt[4]; 
-  Salt[5] ^= KeyCheckSum; LastCipherTextVal &= Salt[5]; 
-  Salt[6] ^= KeyCheckSum; LastCipherTextVal ^= Salt[6]; 
-  Salt[7] ^= KeyCheckSum; LastCipherTextVal &= Salt[7]; 
+  LastCipherTextVal = Salt[0];
+  LastCipherTextVal &= Salt[1]; 
+  LastCipherTextVal ^= Salt[2]; 
+  LastCipherTextVal &= Salt[3]; 
+  LastCipherTextVal ^= Salt[4]; 
+  LastCipherTextVal &= Salt[5]; 
+  LastCipherTextVal ^= Salt[6]; 
+  LastCipherTextVal &= Salt[7]; 
   
   // Our initial jump position in the key body depends on a random value
   M = (BodyMask & Salt[LastCipherTextVal&(SALT_SIZE-1)]);
@@ -798,6 +881,8 @@ uint64_t xorDecryptHOP3(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t I
     M = (M ^ LastCipherTextVal) & BodyMask; 
     
     XORVal ^= Body[M]; 
+    XORVal ^= (1 << (KeyCheckSum&31)); 
+    KeyCheckSum = ROL32_1(KeyCheckSum);
     M = (M ^ (*(Salt + (LastPlainTextVal&(SALT_SIZE-1))))) & BodyMask; 
     
     // All following jumps are based on body values
@@ -817,7 +902,7 @@ uint64_t xorDecryptHOP3(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t I
 } 
 
 
-uint64_t xorEncryptHOP4(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
+uint64_t xorEncryptHOP4(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
 { // Encrypts message and returns checksum of the InOutBuf BEFORE encyption
   // SaltData is a 8 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
   register uint32_t M;
@@ -831,14 +916,14 @@ uint64_t xorEncryptHOP4(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t I
   BodyMask--;
   
   // We compute our start values as much randomly as possible upon salt(or nonce or iv) value which is transmitted with every data to be encrypted or decrypted
-  Salt[0] ^= KeyCheckSum; LastCipherTextVal = Salt[0];
-  Salt[1] ^= KeyCheckSum; LastCipherTextVal &= Salt[1]; 
-  Salt[2] ^= KeyCheckSum; LastCipherTextVal ^= Salt[2]; 
-  Salt[3] ^= KeyCheckSum; LastCipherTextVal &= Salt[3]; 
-  Salt[4] ^= KeyCheckSum; LastCipherTextVal ^= Salt[4]; 
-  Salt[5] ^= KeyCheckSum; LastCipherTextVal &= Salt[5]; 
-  Salt[6] ^= KeyCheckSum; LastCipherTextVal ^= Salt[6]; 
-  Salt[7] ^= KeyCheckSum; LastCipherTextVal &= Salt[7]; 
+  LastCipherTextVal = Salt[0];
+  LastCipherTextVal &= Salt[1]; 
+  LastCipherTextVal ^= Salt[2]; 
+  LastCipherTextVal &= Salt[3]; 
+  LastCipherTextVal ^= Salt[4]; 
+  LastCipherTextVal &= Salt[5]; 
+  LastCipherTextVal ^= Salt[6]; 
+  LastCipherTextVal &= Salt[7]; 
   
   // Our initial jump position in the key body depends on a random value
   M = (BodyMask & Salt[LastCipherTextVal&(SALT_SIZE-1)]);
@@ -850,6 +935,8 @@ uint64_t xorEncryptHOP4(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t I
     M = (M ^ LastCipherTextVal) & BodyMask; 
     
     XORVal ^= Body[M]; 
+    XORVal ^= (1 << (KeyCheckSum&31)); 
+    KeyCheckSum = ROL32_1(KeyCheckSum);
     M = (M ^ (*(Salt + (LastPlainTextVal&(SALT_SIZE-1))))) & BodyMask; 
     
     // All following jumps are based on body values
@@ -870,7 +957,7 @@ uint64_t xorEncryptHOP4(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t I
   }
   return Checksum;
 } 
-uint64_t xorDecryptHOP4(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
+uint64_t xorDecryptHOP4(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
 { // Encrypts message and returns checksum of the InOutBuf BEFORE encyption
   // SaltData is a 8 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
   register uint32_t M;
@@ -884,14 +971,14 @@ uint64_t xorDecryptHOP4(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t I
   BodyMask--;
   
   // We compute our start values as much randomly as possible upon salt(or nonce or iv) value which is transmitted with every data to be encrypted or decrypted
-  Salt[0] ^= KeyCheckSum; LastCipherTextVal = Salt[0];
-  Salt[1] ^= KeyCheckSum; LastCipherTextVal &= Salt[1]; 
-  Salt[2] ^= KeyCheckSum; LastCipherTextVal ^= Salt[2]; 
-  Salt[3] ^= KeyCheckSum; LastCipherTextVal &= Salt[3]; 
-  Salt[4] ^= KeyCheckSum; LastCipherTextVal ^= Salt[4]; 
-  Salt[5] ^= KeyCheckSum; LastCipherTextVal &= Salt[5]; 
-  Salt[6] ^= KeyCheckSum; LastCipherTextVal ^= Salt[6]; 
-  Salt[7] ^= KeyCheckSum; LastCipherTextVal &= Salt[7]; 
+  LastCipherTextVal = Salt[0];
+  LastCipherTextVal &= Salt[1]; 
+  LastCipherTextVal ^= Salt[2]; 
+  LastCipherTextVal &= Salt[3]; 
+  LastCipherTextVal ^= Salt[4]; 
+  LastCipherTextVal &= Salt[5]; 
+  LastCipherTextVal ^= Salt[6]; 
+  LastCipherTextVal &= Salt[7]; 
   
   // Our initial jump position in the key body depends on a random value
   M = (BodyMask & Salt[LastCipherTextVal&(SALT_SIZE-1)]);
@@ -903,6 +990,8 @@ uint64_t xorDecryptHOP4(uint8_t *K, uint8_t *Salt, uint8_t KeyCheckSum, size_t I
     M = (M ^ LastCipherTextVal) & BodyMask; 
     
     XORVal ^= Body[M]; 
+    XORVal ^= (1 << (KeyCheckSum&31)); 
+    KeyCheckSum = ROL32_1(KeyCheckSum);
     M = (M ^ (*(Salt + (LastPlainTextVal&(SALT_SIZE-1))))) & BodyMask; 
     
     // All following jumps are based on body values
@@ -974,7 +1063,7 @@ double Benchmark1(uint8_t NumJumps, uint32_t BodyLen, uint32_t TestSampleLength,
   uint8_t *Data = CreateDataBuf(TestSampleLength);
   unsigned long long int TotalProcessedBytes = 0;
   uint32_t t,Salt;
-  uint8_t KeyCheckSum;
+  uint32_t KeyCheckSum;
   
   printf("Benchmark1\n\tNumJumps: %u\n\tBodyLen: %u\n\tTestSampleLength: %u\n\tNumIterations: %u ... ",NumJumps,BodyLen,TestSampleLength,NumIterations);  
   
@@ -1011,7 +1100,7 @@ double BenchmarkHOP2(uint8_t NumJumps, uint32_t BodyLen, uint32_t TestSampleLeng
   uint8_t *Data = CreateDataBuf(TestSampleLength);
   unsigned long long int TotalProcessedBytes = 0;
   uint32_t t;
-  uint8_t KeyCheckSum;
+  uint32_t KeyCheckSum;
   uint32_t  SaltData=1245;
   
   printf("BenchmarkHop2\n\tNumJumps: %u\n\tBodyLen: %u\n\tTestSampleLength: %u\n\tNumIterations: %u ... ",NumJumps,BodyLen,TestSampleLength,NumIterations);  
@@ -1042,7 +1131,7 @@ double BenchmarkHOP3(uint8_t NumJumps, uint32_t BodyLen, uint32_t TestSampleLeng
   uint8_t *Data = CreateDataBuf(TestSampleLength);
   unsigned long long int TotalProcessedBytes = 0;
   uint32_t t;
-  uint8_t KeyCheckSum;
+  uint32_t KeyCheckSum;
   uint64_t SaltData;
   
   printf("BenchmarkHop3\n\tNumJumps: %u\n\tBodyLen: %u\n\tTestSampleLength: %u\n\tNumIterations: %u ... ",NumJumps,BodyLen,TestSampleLength,NumIterations);  
@@ -1073,7 +1162,7 @@ double BenchmarkHOP4(uint8_t NumJumps, uint32_t BodyLen, uint32_t TestSampleLeng
   uint8_t *Data = CreateDataBuf(TestSampleLength);
   unsigned long long int TotalProcessedBytes = 0;
   uint32_t t;
-  uint8_t KeyCheckSum;
+  uint32_t KeyCheckSum;
   uint64_t SaltData;
   
   printf("BenchmarkHop4\n\tNumJumps: %u\n\tBodyLen: %u\n\tTestSampleLength: %u\n\tNumIterations: %u ... ",NumJumps,BodyLen,TestSampleLength,NumIterations);  
@@ -1159,7 +1248,7 @@ void Test1(unsigned NumJumps, unsigned BodyLen)
   uint8_t *KeyBuf = (uint8_t *)malloc(RawKeyLen);
   uint8_t Data[2048],Data2[2048];
   char *Base64EncodedKeyStr, *Base64CipherText;
-  uint8_t KeyCheckSum;
+  uint32_t KeyCheckSum;
   uint64_t SaltData=1234;
   
   printf("----------- TEST 1: BASIC FUNCTIONALITY(%u Jumps) --------------\n",NumJumps);
@@ -1184,7 +1273,7 @@ void Test1(unsigned NumJumps, unsigned BodyLen)
   // Now let's encrypt with the optimized encryptor
   SaltData=1234;
   
-  /*if (NumJumps == 2)
+  if (NumJumps == 2)
     CheckSumReturnedFromEncryptor = xorEncryptHOP2(KeyBuf, (uint8_t *)(&SaltData), KeyCheckSum, DLen, Data2); 
   else if (NumJumps == 3)
     CheckSumReturnedFromEncryptor = xorEncryptHOP3(KeyBuf, (uint8_t *)(&SaltData), KeyCheckSum, DLen, Data2); 
@@ -1202,7 +1291,7 @@ void Test1(unsigned NumJumps, unsigned BodyLen)
   {
     printf("Non-optimized and optimized encryptor functions outputs are different! FAILED! FAILED!\n");
     exit(-1);
-  }*/
+  }
     
   Base64CipherText = Base64Encode((const char *)Data, DLen);
   printf("Base64CipherText: %s\n", Base64CipherText);
@@ -1215,8 +1304,8 @@ void Test1(unsigned NumJumps, unsigned BodyLen)
     printf("Original key and base64 encoded and decoded keys are different!!!!!\n");
     exit(-1);
   }
-  CheckSumReturnedFromDecryptor = xorDecrypt(K, (uint8_t *)(&SaltData), KeyCheckSum, DLen, Data);
-  /*
+  //CheckSumReturnedFromDecryptor = xorDecrypt(K, (uint8_t *)(&SaltData), KeyCheckSum, DLen, Data);
+  
   if (NumJumps == 2)
     CheckSumReturnedFromDecryptor = xorDecryptHOP2(K, (uint8_t *)(&SaltData), KeyCheckSum, DLen, Data);
   else if (NumJumps == 3)
@@ -1224,7 +1313,7 @@ void Test1(unsigned NumJumps, unsigned BodyLen)
   else if (NumJumps == 4)
     CheckSumReturnedFromDecryptor = xorDecryptHOP4(K, (uint8_t *)(&SaltData), KeyCheckSum, DLen, Data);
   else exit(-1);
-  */
+  
   if (OriginalPlainTextCheckSum != CheckSumReturnedFromDecryptor)
   {
     printf("Original Checksum %llu returned from BufChecksum fnc <> Checksum %llu returned from HOP decyptor\n",OriginalPlainTextCheckSum,CheckSumReturnedFromDecryptor);
@@ -1284,7 +1373,7 @@ void CircularShiftTest()
   }
 }
 
-int64_t EncryptFile(const char *InFileName, const char *OutFileName, uint8_t *KeyBuf, uint8_t KeyCheckSum)
+int64_t EncryptFile(const char *InFileName, const char *OutFileName, uint8_t *KeyBuf, uint32_t KeyCheckSum)
 {
   int32_t FDesc;   
   int64_t Len, RLen;
@@ -1327,7 +1416,7 @@ int64_t EncryptFile(const char *InFileName, const char *OutFileName, uint8_t *Ke
   close(FDesc);
   return CheckSum;
 }
-int64_t EncryptBMPFile(const char *InFileName, const char *OutFileName, uint8_t *KeyBuf, uint8_t KeyCheckSum)
+int64_t EncryptBMPFile(const char *InFileName, const char *OutFileName, uint8_t *KeyBuf, uint32_t KeyCheckSum)
 { // Encrypts a bmp file for visual attack
   int32_t FDesc;   
   int64_t Len, RLen;
@@ -1395,7 +1484,7 @@ void TestEncryptFile(unsigned NumJumps, unsigned BodyLen)
   unsigned long long int ChkSum;
   unsigned RawKeyLen = xorComputeKeyBufLen(BodyLen);
   uint8_t *KeyBuf = (uint8_t *)malloc(RawKeyLen);
-  uint8_t KeyCheckSum;
+  uint32_t KeyCheckSum;
   char *Base64EncodedKeyStr;
   
   printf("----------- FILE ENC TEST(%u Jumps) --------------\n",NumJumps);
@@ -1413,7 +1502,7 @@ void TestEncryptBMPFile(const char *InFileName, const char *OutFileName, unsigne
   unsigned long long int ChkSum;
   unsigned RawKeyLen = xorComputeKeyBufLen(BodyLen);
   uint8_t *KeyBuf = (uint8_t *)malloc(RawKeyLen);
-  uint8_t KeyCheckSum;
+  uint32_t KeyCheckSum;
   char *Base64EncodedKeyStr;
   
   printf("----------- FILE ENC TEST(%u Jumps) --------------\n",NumJumps);
@@ -1426,13 +1515,56 @@ void TestEncryptBMPFile(const char *InFileName, const char *OutFileName, unsigne
   printf("Result: %llu\n", ChkSum);
 }
 
+void CreateVisualProofs()
+{
+  TestEncryptBMPFile("/home/ikizir/Downloads/panda.bmp", "/home/ikizir/Downloads/panda_enc_2J_64.bmp", 2, 64);
+  TestEncryptBMPFile("/home/ikizir/Downloads/panda.bmp", "/home/ikizir/Downloads/panda_enc_3J_64.bmp", 3, 64);
+  
+  TestEncryptBMPFile("/home/ikizir/Downloads/panda.bmp", "/home/ikizir/Downloads/panda_enc_2J_128.bmp", 2, 128);
+  TestEncryptBMPFile("/home/ikizir/Downloads/panda.bmp", "/home/ikizir/Downloads/panda_enc_3J_128.bmp", 3, 128);
+  
+  TestEncryptBMPFile("/home/ikizir/Downloads/panda.bmp", "/home/ikizir/Downloads/panda_enc_2J_256.bmp", 2, 256);
+  TestEncryptBMPFile("/home/ikizir/Downloads/panda.bmp", "/home/ikizir/Downloads/panda_enc_3J_256.bmp", 3, 256);
+  
+  TestEncryptBMPFile("/home/ikizir/Downloads/Bitmap1.bmp", "/home/ikizir/Downloads/Bitmap1_enc_2J_64.bmp", 2, 64);
+  TestEncryptBMPFile("/home/ikizir/Downloads/Bitmap1.bmp", "/home/ikizir/Downloads/Bitmap1_enc_3J_64.bmp", 3, 64);
+  
+  TestEncryptBMPFile("/home/ikizir/Downloads/Bitmap1.bmp", "/home/ikizir/Downloads/Bitmap1_enc_2J_128.bmp", 2, 128);
+  TestEncryptBMPFile("/home/ikizir/Downloads/Bitmap1.bmp", "/home/ikizir/Downloads/Bitmap1_enc_3J_128.bmp", 3, 128);
+  
+  TestEncryptBMPFile("/home/ikizir/Downloads/Bitmap1.bmp", "/home/ikizir/Downloads/Bitmap1_enc_2J_256.bmp", 2, 256);
+  TestEncryptBMPFile("/home/ikizir/Downloads/Bitmap1.bmp", "/home/ikizir/Downloads/Bitmap1_enc_3J_256.bmp", 3, 256);
+  
+  TestEncryptBMPFile("/home/ikizir/Downloads/Viking.bmp", "/home/ikizir/Downloads/Viking_enc_2J_64.bmp", 2, 64);
+  TestEncryptBMPFile("/home/ikizir/Downloads/Viking.bmp", "/home/ikizir/Downloads/Viking_enc_3J_64.bmp", 3, 64);
+  
+  TestEncryptBMPFile("/home/ikizir/Downloads/Viking.bmp", "/home/ikizir/Downloads/Viking_enc_2J_128.bmp", 2, 128);
+  TestEncryptBMPFile("/home/ikizir/Downloads/Viking.bmp", "/home/ikizir/Downloads/Viking_enc_3J_128.bmp", 3, 128);
+  
+  TestEncryptBMPFile("/home/ikizir/Downloads/Viking.bmp", "/home/ikizir/Downloads/Viking_enc_2J_256.bmp", 2, 256);
+  TestEncryptBMPFile("/home/ikizir/Downloads/Viking.bmp", "/home/ikizir/Downloads/Viking_enc_3J_256.bmp", 3, 256);
+  
+  TestEncryptBMPFile("/home/ikizir/Downloads/B.bmp", "/home/ikizir/Downloads/B_enc_2J_64.bmp", 2, 64);
+  TestEncryptBMPFile("/home/ikizir/Downloads/B.bmp", "/home/ikizir/Downloads/B_enc_3J_64.bmp", 3, 64);
+  
+  TestEncryptBMPFile("/home/ikizir/Downloads/B.bmp", "/home/ikizir/Downloads/B_enc_2J_128.bmp", 2, 128);
+  TestEncryptBMPFile("/home/ikizir/Downloads/B.bmp", "/home/ikizir/Downloads/B_enc_3J_128.bmp", 3, 128);
+  
+  TestEncryptBMPFile("/home/ikizir/Downloads/B.bmp", "/home/ikizir/Downloads/B_enc_2J_256.bmp", 2, 256);
+  TestEncryptBMPFile("/home/ikizir/Downloads/B.bmp", "/home/ikizir/Downloads/B_enc_3J_256.bmp", 3, 256);
+  
+}
 int main()
 {
   uint32_t BodyLen = 128, NumJumps=2;
+
+  //printf("CRC: %u\n", digital_crc32((uint8_t *)"Ismail", 7));
+  //printf("CRC: %u\n", digital_crc32((uint8_t *)"Hasan", 5));
+  //printf("CRC: %u\n", digital_crc32((uint8_t *)"Ismail", 7));
   
   Test1(2, BodyLen);
-//  TestEncryptBMPFile("/home/ikizir/Downloads/panda.bmp", "/home/ikizir/Downloads/panda_enc.bmp", NumJumps, BodyLen);
-//  TestEncryptBMPFile("/home/ikizir/Downloads/Bitmap1.bmp", "/home/ikizir/Downloads/Bitmap1_enc.bmp", NumJumps, BodyLen);
+  //CreateVisualProofs();
+//  exit(-1);
   
   //CircularShiftTest();
   //uint32_t TestSampleLength = 8192;
