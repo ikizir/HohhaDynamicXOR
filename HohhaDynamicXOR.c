@@ -548,7 +548,7 @@ static inline int ROR32_1(int v) {
 // Result buffer must be enough to store key!! No error checking is done!!!
 void xorGetKey(uint8_t NumJumps, uint32_t BodyLen, uint8_t *KeyBuf)
 {
-  assert(NumJumps > 1 && BodyLen > 7 && BodyLen<=MAX_BODY_SIZE & NumJumps<MAX_NUM_JUMPS && ((BodyLen-1)&BodyLen) == 0);
+  assert((NumJumps > 1) && (BodyLen > 7) && (BodyLen<=MAX_BODY_SIZE) & (NumJumps<MAX_NUM_JUMPS) && (((BodyLen-1)&BodyLen) == 0));
   
 #ifdef VERBOSE
   printf("Generating key ... BodyLen: %u NumJumps: %u\n",BodyLen,NumJumps);
@@ -592,7 +592,7 @@ uint64_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOu
   // SaltData is a 8 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
   register uint32_t tt, M;
   register size_t t;
-  register uint8_t XORVal, LastPlainTextVal = 0, LastCipherTextVal = 0; // Last PLAINTEXT byte processed. It will be an input parameter for the next encryption
+  register uint32_t XORVal, LastPlainTextVal = 0, LastCipherTextVal; // Last PLAINTEXT byte processed. It will be an input parameter for the next encryption
   register uint64_t Checksum=0;
   register uint32_t BodyMask = GetBodyLen(K); // +1 because we will use this "Mersenne number" for & operation instead of modulus operation
   uint8_t Body[MAX_BODY_SIZE];
@@ -622,7 +622,7 @@ uint64_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOu
     XORVal ^= Body[M]; 
     XORVal ^= (1 << (KeyCheckSum&31)); 
     KeyCheckSum = ROL32_1(KeyCheckSum);
-    M = (M ^ (*(Salt + (LastPlainTextVal&(SALT_SIZE-1))))) & BodyMask; 
+    M = (M ^ Salt[LastPlainTextVal&(SALT_SIZE-1)]) & BodyMask; 
     
     for (tt=2; tt < GetNumJumps(K); tt++)
     {
@@ -630,8 +630,8 @@ uint64_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOu
       XORVal ^= Body[M]; 
       M = (M ^ Body[M]) & BodyMask; 
     }
-    Checksum += InOutBuf[t]; 
-    LastCipherTextVal = InOutBuf[t]; 
+    LastCipherTextVal = InOutBuf[t]; // This is still the plaintext value. We use LastCipherTextVal as a temp var here
+    Checksum += LastCipherTextVal; 
     
     XORVal ^= (1 << (M&7)); 
     InOutBuf[t] ^= ((uint8_t)(XORVal));
@@ -647,7 +647,7 @@ uint64_t xorDecrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOu
   // SaltData is a 8 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
   register uint32_t tt, M;
   register size_t t;
-  register uint8_t XORVal, LastPlainTextVal = 0, LastCipherTextVal = 0; // Last PLAINTEXT byte processed. It will be an input parameter for the next encryption
+  register uint32_t XORVal, LastPlainTextVal = 0, LastCipherTextVal; // Last PLAINTEXT byte processed. It will be an input parameter for the next encryption
   register uint64_t Checksum=0;
   register uint32_t BodyMask = GetBodyLen(K); // +1 because we will use this "Mersenne number" for & operation instead of modulus operation
   uint8_t Body[MAX_BODY_SIZE];
@@ -677,7 +677,7 @@ uint64_t xorDecrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOu
     XORVal ^= Body[M]; 
     XORVal ^= (1 << (KeyCheckSum&31)); 
     KeyCheckSum = ROL32_1(KeyCheckSum);
-    M = (M ^ (*(Salt + (LastPlainTextVal&(SALT_SIZE-1))))) & BodyMask; 
+    M = (M ^ Salt[LastPlainTextVal&(SALT_SIZE-1)]) & BodyMask; 
     
     for (tt=2; tt < GetNumJumps(K); tt++)
     {
@@ -702,7 +702,7 @@ uint64_t xorEncryptHOP2(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
   // SaltData is a 8 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
   register uint32_t M;
   register size_t t;
-  register uint8_t XORVal, LastPlainTextVal = 0, LastCipherTextVal = 0; // Last PLAINTEXT byte processed. It will be an input parameter for the next encryption
+  register uint32_t XORVal, LastPlainTextVal = 0, LastCipherTextVal; // Last PLAINTEXT byte processed. It will be an input parameter for the next encryption
   register uint64_t Checksum=0;
   register uint32_t BodyMask = GetBodyLen(K); // +1 because we will use this "Mersenne number" for & operation instead of modulus operation
   uint8_t Body[MAX_BODY_SIZE];
@@ -732,10 +732,10 @@ uint64_t xorEncryptHOP2(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
     XORVal ^= Body[M]; 
     XORVal ^= (1 << (KeyCheckSum&31)); 
     KeyCheckSum = ROL32_1(KeyCheckSum);
-    M = (M ^ (*(Salt + (LastPlainTextVal&(SALT_SIZE-1))))) & BodyMask; 
+    M = (M ^ Salt[LastPlainTextVal&(SALT_SIZE-1)]) & BodyMask; 
     
-    Checksum += InOutBuf[t]; 
-    LastCipherTextVal = InOutBuf[t]; 
+    LastCipherTextVal = InOutBuf[t]; // This is still the plaintext value. We use LastCipherTextVal as a temp var here
+    Checksum += LastCipherTextVal; 
     
     XORVal ^= (1 << (M&7)); 
     InOutBuf[t] ^= ((uint8_t)(XORVal));
@@ -751,7 +751,7 @@ uint64_t xorDecryptHOP2(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
   // SaltData is a 8 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
   register uint32_t M;
   register size_t t;
-  register uint8_t XORVal, LastPlainTextVal = 0, LastCipherTextVal = 0; // Last PLAINTEXT byte processed. It will be an input parameter for the next encryption
+  register uint32_t XORVal, LastPlainTextVal = 0, LastCipherTextVal; // Last PLAINTEXT byte processed. It will be an input parameter for the next encryption
   register uint64_t Checksum=0;
   register uint32_t BodyMask = GetBodyLen(K); // +1 because we will use this "Mersenne number" for & operation instead of modulus operation
   uint8_t Body[MAX_BODY_SIZE];
@@ -781,7 +781,7 @@ uint64_t xorDecryptHOP2(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
     XORVal ^= Body[M]; 
     XORVal ^= (1 << (KeyCheckSum&31)); 
     KeyCheckSum = ROL32_1(KeyCheckSum);
-    M = (M ^ (*(Salt + (LastPlainTextVal&(SALT_SIZE-1))))) & BodyMask; 
+    M = (M ^ Salt[LastPlainTextVal&(SALT_SIZE-1)]) & BodyMask; 
     
     XORVal ^= (1 << (M&7)); 
     
@@ -800,7 +800,8 @@ uint64_t xorEncryptHOP3(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
   // SaltData is a 8 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
   register uint32_t M;
   register size_t t;
-  register uint8_t XORVal, LastPlainTextVal = 0, LastCipherTextVal = 0; // Last PLAINTEXT byte processed. It will be an input parameter for the next encryption
+  // Using 8 bit registers for >= 3 jumps is faster than using 32 bit registers
+  register uint8_t XORVal, LastPlainTextVal = 0, LastCipherTextVal; // Last PLAINTEXT byte processed. It will be an input parameter for the next encryption
   register uint64_t Checksum=0;
   register uint32_t BodyMask = GetBodyLen(K); // +1 because we will use this "Mersenne number" for & operation instead of modulus operation
   uint8_t Body[MAX_BODY_SIZE];
@@ -830,14 +831,14 @@ uint64_t xorEncryptHOP3(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
     XORVal ^= Body[M]; 
     XORVal ^= (1 << (KeyCheckSum&31)); 
     KeyCheckSum = ROL32_1(KeyCheckSum);
-    M = (M ^ (*(Salt + (LastPlainTextVal&(SALT_SIZE-1))))) & BodyMask; 
+    M = (M ^ Salt[LastPlainTextVal&(SALT_SIZE-1)]) & BodyMask; 
     
     // All following jumps are based on body values
     XORVal ^= Body[M]; 
     M = (M ^ Body[M]) & BodyMask; 
 
-    Checksum += InOutBuf[t]; 
-    LastCipherTextVal = InOutBuf[t]; 
+    LastCipherTextVal = InOutBuf[t]; // This is still the plaintext value. We use LastCipherTextVal as a temp var here
+    Checksum += LastCipherTextVal; 
     
     XORVal ^= (1 << (M&7)); 
     InOutBuf[t] ^= ((uint8_t)(XORVal));
@@ -853,7 +854,8 @@ uint64_t xorDecryptHOP3(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
   // SaltData is a 8 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
   register uint32_t M;
   register size_t t;
-  register uint8_t XORVal, LastPlainTextVal = 0, LastCipherTextVal = 0; // Last PLAINTEXT byte processed. It will be an input parameter for the next encryption
+  // Using 8 bit registers for >= 3 jumps is faster than using 32 bit registers
+  register uint8_t XORVal, LastPlainTextVal = 0, LastCipherTextVal; // Last PLAINTEXT byte processed. It will be an input parameter for the next encryption
   register uint64_t Checksum=0;
   register uint32_t BodyMask = GetBodyLen(K); // +1 because we will use this "Mersenne number" for & operation instead of modulus operation
   uint8_t Body[MAX_BODY_SIZE];
@@ -883,7 +885,7 @@ uint64_t xorDecryptHOP3(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
     XORVal ^= Body[M]; 
     XORVal ^= (1 << (KeyCheckSum&31)); 
     KeyCheckSum = ROL32_1(KeyCheckSum);
-    M = (M ^ (*(Salt + (LastPlainTextVal&(SALT_SIZE-1))))) & BodyMask; 
+    M = (M ^ Salt[LastPlainTextVal&(SALT_SIZE-1)]) & BodyMask; 
     
     // All following jumps are based on body values
     XORVal ^= Body[M]; 
@@ -907,7 +909,8 @@ uint64_t xorEncryptHOP4(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
   // SaltData is a 8 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
   register uint32_t M;
   register size_t t;
-  register uint8_t XORVal, LastPlainTextVal = 0, LastCipherTextVal = 0; // Last PLAINTEXT byte processed. It will be an input parameter for the next encryption
+  // Using 8 bit registers for >= 3 jumps is faster than using 32 bit registers
+  register uint8_t XORVal, LastPlainTextVal = 0, LastCipherTextVal; // Last PLAINTEXT byte processed. It will be an input parameter for the next encryption
   register uint64_t Checksum=0;
   register uint32_t BodyMask = GetBodyLen(K); // +1 because we will use this "Mersenne number" for & operation instead of modulus operation
   uint8_t Body[MAX_BODY_SIZE];
@@ -937,7 +940,7 @@ uint64_t xorEncryptHOP4(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
     XORVal ^= Body[M]; 
     XORVal ^= (1 << (KeyCheckSum&31)); 
     KeyCheckSum = ROL32_1(KeyCheckSum);
-    M = (M ^ (*(Salt + (LastPlainTextVal&(SALT_SIZE-1))))) & BodyMask; 
+    M = (M ^ Salt[LastPlainTextVal&(SALT_SIZE-1)]) & BodyMask; 
     
     // All following jumps are based on body values
     XORVal ^= Body[M]; 
@@ -945,8 +948,8 @@ uint64_t xorEncryptHOP4(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
     XORVal ^= Body[M]; 
     M = (M ^ Body[M]) & BodyMask; 
     
-    Checksum += InOutBuf[t]; 
-    LastCipherTextVal = InOutBuf[t]; 
+    LastCipherTextVal = InOutBuf[t]; // This is still the plaintext value. We use LastCipherTextVal as a temp var here
+    Checksum += LastCipherTextVal; 
     
     XORVal ^= (1 << (M&7)); 
     InOutBuf[t] ^= ((uint8_t)(XORVal));
@@ -962,7 +965,8 @@ uint64_t xorDecryptHOP4(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
   // SaltData is a 8 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
   register uint32_t M;
   register size_t t;
-  register uint8_t XORVal, LastPlainTextVal = 0, LastCipherTextVal = 0; // Last PLAINTEXT byte processed. It will be an input parameter for the next encryption
+  // Using 8 bit registers for >= 3 jumps is faster than using 32 bit registers
+  register uint8_t XORVal, LastPlainTextVal = 0, LastCipherTextVal; // Last PLAINTEXT byte processed. It will be an input parameter for the next encryption
   register uint64_t Checksum=0;
   register uint32_t BodyMask = GetBodyLen(K); // +1 because we will use this "Mersenne number" for & operation instead of modulus operation
   uint8_t Body[MAX_BODY_SIZE];
@@ -992,7 +996,7 @@ uint64_t xorDecryptHOP4(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
     XORVal ^= Body[M]; 
     XORVal ^= (1 << (KeyCheckSum&31)); 
     KeyCheckSum = ROL32_1(KeyCheckSum);
-    M = (M ^ (*(Salt + (LastPlainTextVal&(SALT_SIZE-1))))) & BodyMask; 
+    M = (M ^ Salt[LastPlainTextVal&(SALT_SIZE-1)]) & BodyMask; 
     
     // All following jumps are based on body values
     XORVal ^= Body[M]; 
@@ -1574,7 +1578,7 @@ void CreateVisualProofs()
 
 int main()
 {
-  uint32_t BodyLen = 128, NumJumps=2;
+  uint32_t BodyLen = 128;
 
   //printf("CRC: %u\n", digital_crc32((uint8_t *)"Ismail", 7));
   //printf("CRC: %u\n", digital_crc32((uint8_t *)"Hasan", 5));
