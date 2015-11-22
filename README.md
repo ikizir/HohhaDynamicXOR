@@ -81,7 +81,7 @@ uint64_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOu
     {
       // All following jumps are based on body values
       XORVal ^= Body[M]; 
-      M = (M + Body[M]) & BodyMask; 
+      M = (M ^ Body[M]) & BodyMask; 
     }
     Checksum += InOutBuf[t]; 
     LastCipherTextVal = InOutBuf[t]; 
@@ -133,8 +133,8 @@ When the "analyze" begins: I don't want to give huge numbers, but the rest of an
 As I told you, I am not an expert.
 I don't claim it is "impossible" to break.But those are the base numbers. I may be wrong. And this is a public place. Correct me if I am wrong please!
 I just tell, for example, for my specific needs in a chat application, where the keys are not used for a very long time, it seems enough. 
-Each user pair will use 4 jump level keys with 1024 byte key body for their private chats. I think, it is fairly enough.
-It is up to you to decide. Take your own risk! Think carefully when to use, where to use it! All I can do is to share my ideas transparently.
+Each user pair will use 4 jump level keys with 256 byte key body for their private chats. I think, it is fairly enough.
+It is up to you to decide. Take your own risk! Think carefully when to use, where to use it! All I can do is to share my ideas transparently. 
 
 There isn't any specific precautions against side channel or any physical type of attack. You must take care of your phone or computer.
 
@@ -147,9 +147,10 @@ I am still looking for ways to better "hide" key body elements against this poss
 void xorGetKey(uint8_t NumJumps, uint32_t BodyLen, uint8_t *KeyBuf);
 ```
 Creates an encryption key.
-NumJumps is the number of jumps(or rounds) to encrypt or decrypt data. The actual maximum value is 4(But if you find it weak, I(or you) can increase that limit. I just have to write hand optimized functions). This parameter directly affects speed and strength of the algorithm. If you choose higher values, the encryption will be more secure but slower.
+NumJumps is the number of jumps(or rounds) to encrypt or decrypt data. The actual maximum value is 4(But if you find it weak, We(or you) can increase that limit. We just have to write hand optimized functions). This parameter directly affects speed and strength of the algorithm. If you choose higher values, the encryption will be more secure but slower. We suggest using minimum 3 jumps. And, interestingly, in our benchmarks results for 3 jumps are faster than 2 jumps!(due to branch prediction I guess)
 
-BodyLen is the number of bytes in the key body. It must be a power of 2 (e.g. 64,128,256,512 ...)
+BodyLen is the number of bytes in the key body. It must be a power of 2 (e.g. 64,128,256 ...). 
+We set current key body "hard" maximum limit to 256 due to our algorithm design. If you want to create derivatives to use higher key body lengths, you must make some minor modifications on encryptor and decryptor function to assure right key coverage. 
 It has negligible impact on the speed of the algorithm, but a direct impact on strength: Higher values you choose, higher security you get. Choose large numbers especially if you are going to encrypt large files.
 
 KeyBuf is pointer to an "already allocated" buffer to hold the entire key. To compute the size of the resulting key, you may use xorComputeKeyBufLen macro.
