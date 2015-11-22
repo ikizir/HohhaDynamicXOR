@@ -81,7 +81,7 @@ uint64_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOu
     {
       // All following jumps are based on body values
       XORVal ^= Body[M]; 
-      M = (M ^ Body[M]) & BodyMask; 
+      M = (M + Body[M]) & BodyMask; 
     }
     Checksum += InOutBuf[t]; 
     LastCipherTextVal = InOutBuf[t]; 
