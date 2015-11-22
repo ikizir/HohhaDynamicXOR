@@ -40,10 +40,10 @@ So, every time we encrypt a byte, we also change the key. *It's a bit more compl
 
 Here is the encryption code:
 ```C
-uint64_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
+uint64_t xorDecryptHOP4(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
 { // Encrypts message and returns checksum of the InOutBuf BEFORE encyption
   // SaltData is a 8 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
-  register uint32_t tt, M;
+  register uint32_t M;
   register size_t t;
   register uint8_t XORVal, LastPlainTextVal = 0, LastCipherTextVal = 0; // Last PLAINTEXT byte processed. It will be an input parameter for the next encryption
   register uint64_t Checksum=0;
@@ -67,8 +67,8 @@ uint64_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOu
   M = (BodyMask & Salt[LastCipherTextVal&(SALT_SIZE-1)]);
   
   for (t=0; t<InOutDataLen; t++)
-  {  
-    // On first jump, we take previous encrypted byte and we jump to another position depending on its value
+  {
+    // In first two jumps, we take high 3 bits of each key body element
     XORVal = (Checksum&8) ^ Body[M]; 
     M = (M ^ LastCipherTextVal) & BodyMask; 
     
@@ -77,19 +77,18 @@ uint64_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOu
     KeyCheckSum = ROL32_1(KeyCheckSum);
     M = (M ^ (*(Salt + (LastPlainTextVal&(SALT_SIZE-1))))) & BodyMask; 
     
-    for (tt=2; tt < GetNumJumps(K); tt++)
-    {
-      // All following jumps are based on body values
-      XORVal ^= Body[M]; 
-      M = (M ^ Body[M]) & BodyMask; 
-    }
-    Checksum += InOutBuf[t]; 
-    LastCipherTextVal = InOutBuf[t]; 
+    // All following jumps are based on body values
+    XORVal ^= Body[M]; 
+    M = (M ^ Body[M]) & BodyMask; 
+    XORVal ^= Body[M]; 
+    M = (M ^ Body[M]) & BodyMask; 
     
     XORVal ^= (1 << (M&7)); 
-    InOutBuf[t] ^= ((uint8_t)(XORVal));
-    LastPlainTextVal = LastCipherTextVal; 
+    
     LastCipherTextVal = InOutBuf[t];
+    InOutBuf[t] ^= ((uint8_t)(XORVal));
+    LastPlainTextVal = InOutBuf[t]; 
+    Checksum += LastPlainTextVal; 
     
     Body[M] ^= LastCipherTextVal;
   }
