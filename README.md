@@ -309,7 +309,7 @@ void Test1(unsigned NumJumps, unsigned BodyLen)
 }
 ```
 In real life scenarios, it is crucial to transmit Salt data secretly.
-In order to realize this, you must create a random salt; use that random salt to encrypt the plaintext and you must encrypt the data with the key, using key's original salt data.
+In order to realize this, you must create a random salt; use that random salt to encrypt the plaintext and you must encrypt the salt with the key, using key's original salt data.
 The receiver will first decrypt the salt data using key's original salt data in order to obtain actual salt data, then will decrypt the ciphertext using this actual salt data. I am going to publish source code examples here.
 
 ... I am still writing the documentation --- to be continued ---
