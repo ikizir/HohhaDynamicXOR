@@ -628,7 +628,7 @@ uint64_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOu
     {
       // All following jumps are based on body values
       XORVal ^= Body[M]; 
-      M = (M ^ Body[M]) & BodyMask; 
+      M = (M + Body[M]) & BodyMask; 
     }
     Checksum += InOutBuf[t]; 
     LastCipherTextVal = InOutBuf[t]; 
@@ -683,7 +683,7 @@ uint64_t xorDecrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOu
     {
       // All following jumps are based on body values
       XORVal ^= Body[M]; 
-      M = (M ^ Body[M]) & BodyMask; 
+      M = (M + Body[M]) & BodyMask; 
     }
     XORVal ^= (1 << (M&7)); 
     
@@ -834,7 +834,7 @@ uint64_t xorEncryptHOP3(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
     
     // All following jumps are based on body values
     XORVal ^= Body[M]; 
-    M = (M ^ Body[M]) & BodyMask; 
+    M = (M + Body[M]) & BodyMask; 
 
     Checksum += InOutBuf[t]; 
     LastCipherTextVal = InOutBuf[t]; 
@@ -887,7 +887,7 @@ uint64_t xorDecryptHOP3(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
     
     // All following jumps are based on body values
     XORVal ^= Body[M]; 
-    M = (M ^ Body[M]) & BodyMask; 
+    M = (M + Body[M]) & BodyMask; 
 
     XORVal ^= (1 << (M&7)); 
     
@@ -941,9 +941,9 @@ uint64_t xorEncryptHOP4(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
     
     // All following jumps are based on body values
     XORVal ^= Body[M]; 
-    M = (M ^ Body[M]) & BodyMask; 
+    M = (M + Body[M]) & BodyMask; 
     XORVal ^= Body[M]; 
-    M = (M ^ Body[M]) & BodyMask; 
+    M = (M + Body[M]) & BodyMask; 
     
     Checksum += InOutBuf[t]; 
     LastCipherTextVal = InOutBuf[t]; 
@@ -996,9 +996,9 @@ uint64_t xorDecryptHOP4(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
     
     // All following jumps are based on body values
     XORVal ^= Body[M]; 
-    M = (M ^ Body[M]) & BodyMask; 
+    M = (M + Body[M]) & BodyMask; 
     XORVal ^= Body[M]; 
-    M = (M ^ Body[M]) & BodyMask; 
+    M = (M + Body[M]) & BodyMask; 
     
     XORVal ^= (1 << (M&7)); 
     
@@ -1249,7 +1249,11 @@ void Test1(unsigned NumJumps, unsigned BodyLen)
   uint8_t Data[2048],Data2[2048];
   char *Base64EncodedKeyStr, *Base64CipherText;
   uint32_t KeyCheckSum;
-  uint64_t SaltData=1234;
+  uint64_t OriginalSaltData, SaltData;
+  
+  
+  GetRandomNumbers(SALT_SIZE, (uint8_t *)&OriginalSaltData); // Fill salt data with random numbers
+  SaltData = OriginalSaltData;
   
   printf("----------- TEST 1: BASIC FUNCTIONALITY(%u Jumps) --------------\n",NumJumps);
   xorGetKey(NumJumps, BodyLen, KeyBuf);
@@ -1271,7 +1275,7 @@ void Test1(unsigned NumJumps, unsigned BodyLen)
     exit(-1);
   } else printf("OriginalPlainTextCheckSum %llu = CheckSumReturnedFromEncryptor %llu :: SUCCESS!\n",OriginalPlainTextCheckSum,CheckSumReturnedFromEncryptor);
   // Now let's encrypt with the optimized encryptor
-  SaltData=1234;
+  SaltData=OriginalSaltData;
   
   if (NumJumps == 2)
     CheckSumReturnedFromEncryptor = xorEncryptHOP2(KeyBuf, (uint8_t *)(&SaltData), KeyCheckSum, DLen, Data2); 
@@ -1296,7 +1300,7 @@ void Test1(unsigned NumJumps, unsigned BodyLen)
   Base64CipherText = Base64Encode((const char *)Data, DLen);
   printf("Base64CipherText: %s\n", Base64CipherText);
   printf("\n\nDecryption process:\n\n");
-  SaltData=1234;
+  SaltData=OriginalSaltData;
   uint8_t *K = (uint8_t *)Base64Decode(Base64EncodedKeyStr);
   
   if (memcmp((char *)KeyBuf, (char *)K, RawKeyLen) != 0)
@@ -1566,3 +1570,94 @@ void CreateVisualProofs()
   TestEncryptBMPFile("/home/ikizir/Downloads/penguen.bmp", "/home/ikizir/Downloads/penguen_enc_3J_256.bmp", 3, 256);
   
 }
+
+int main()
+{
+  uint32_t BodyLen = 128, NumJumps=2;
+
+  //printf("CRC: %u\n", digital_crc32((uint8_t *)"Ismail", 7));
+  //printf("CRC: %u\n", digital_crc32((uint8_t *)"Hasan", 5));
+  //printf("CRC: %u\n", digital_crc32((uint8_t *)"Ismail", 7));
+  
+  Test1(2, BodyLen);
+  //CreateVisualProofs();
+//  exit(-1);
+  
+  //CircularShiftTest();
+  //uint32_t TestSampleLength = 8192;
+  uint32_t NumIterations = 1000000;
+  //D1();
+  Test1(2, BodyLen);
+  Test1(3, BodyLen);
+  Test1(4, BodyLen);
+  //Test1(4, BodyLen);
+  //Test1(5, BodyLen);
+  
+    //exit(-1);
+  
+  CheckOptimizedVersion(2, BodyLen);
+  CheckOptimizedVersion(3, BodyLen);
+  CheckOptimizedVersion(4, BodyLen);
+  //CheckOptimizedVersion(5, BodyLen);
+  
+  double Average16M,Average64M,Average256M,Average1024M,Average8192M;
+  double Average16H2,Average64H2,Average256H2,Average1024H2,Average8192H2;
+  double Average16H3,Average64H3,Average256H3,Average1024H3,Average8192H3;
+  double Average16H4,Average64H4,Average256H4,Average1024H4,Average8192H4;
+  
+  
+  Average16M = MemCpyBenchmark1(16, NumIterations);
+  Average64M = MemCpyBenchmark1(64, NumIterations);
+  Average256M = MemCpyBenchmark1(256, NumIterations);
+  Average1024M = MemCpyBenchmark1(1024, NumIterations);
+  Average8192M = MemCpyBenchmark1(8192, NumIterations);
+  /*
+  double Average16,Average64,Average256,Average1024,Average8192;
+  Average16 = Benchmark1(NumJumps, BodyLen, 16, NumIterations);
+  Average64 = Benchmark1(NumJumps, BodyLen, 64, NumIterations);
+  Average256 = Benchmark1(NumJumps, BodyLen, 256, NumIterations);
+  Average1024 = Benchmark1(NumJumps, BodyLen, 1024, NumIterations);
+  Average8192 = Benchmark1(NumJumps, BodyLen, 8192, NumIterations);
+  printf("\n\nNON-HAND-OPTIMIZED VERSION BENCHMARKS:\n"
+         "16                  64                  256                 1024                 8192\n"
+         "------------------- ------------------- ------------------- -------------------- --------------------\n"
+         "%19.2f %19.2f %19.2f %19.2f %19.2f\n\n", Average16, Average64, Average256, Average1024, Average8192);
+  */
+  Average16H2 = BenchmarkHOP2(2, BodyLen, 16, NumIterations);
+  Average64H2 = BenchmarkHOP2(2, BodyLen, 64, NumIterations);
+  Average256H2 = BenchmarkHOP2(2, BodyLen, 256, NumIterations);
+  Average1024H2 = BenchmarkHOP2(2, BodyLen, 1024, NumIterations);
+  Average8192H2 = BenchmarkHOP2(2, BodyLen, 8192, NumIterations);
+  
+  Average16H3 = BenchmarkHOP3(3, BodyLen, 16, NumIterations);
+  Average64H3 = BenchmarkHOP3(3, BodyLen, 64, NumIterations);
+  Average256H3 = BenchmarkHOP3(3, BodyLen, 256, NumIterations);
+  Average1024H3 = BenchmarkHOP3(3, BodyLen, 1024, NumIterations);
+  Average8192H3 = BenchmarkHOP3(3, BodyLen, 8192, NumIterations);
+  
+  Average16H4 = BenchmarkHOP4(4, BodyLen, 16, NumIterations);
+  Average64H4 = BenchmarkHOP4(4, BodyLen, 64, NumIterations);
+  Average256H4 = BenchmarkHOP4(4, BodyLen, 256, NumIterations);
+  Average1024H4 = BenchmarkHOP4(4, BodyLen, 1024, NumIterations);
+  Average8192H4 = BenchmarkHOP4(4, BodyLen, 8192, NumIterations);
+  
+  printf("\n\nMemcpy BENCHMARKS(Real life usage):\n"
+         "16                  64                  256                 1024                8192               \n"
+         "------------------- ------------------- ------------------- ------------------- -------------------\n"
+         "%19.2f %19.2f %19.2f %19.2f %19.2f\n\n", Average16M, Average64M, Average256M, Average1024M, Average8192M);
+  printf("\n\n2-Jumps BENCHMARKS(Real life usage):\n"
+         "16                  64                  256                 1024                8192               \n"
+         "------------------- ------------------- ------------------- ------------------- -------------------\n"
+         "%19.2f %19.2f %19.2f %19.2f %19.2f\n\n", Average16H2, Average64H2, Average256H2, Average1024H2, Average8192H2);
+  printf("\n\n3-Jumps BENCHMARKS(Real life usage):\n"
+         "16                  64                  256                 1024                8192               \n"
+         "------------------- ------------------- ------------------- ------------------- -------------------\n"
+         "%19.2f %19.2f %19.2f %19.2f %19.2f\n\n", Average16H3, Average64H3, Average256H3, Average1024H3, Average8192H3);
+  printf("\n\n4-Jumps BENCHMARKS(Real life usage):\n"
+         "16                  64                  256                 1024                8192               \n"
+         "------------------- ------------------- ------------------- ------------------- -------------------\n"
+         "%19.2f %19.2f %19.2f %19.2f %19.2f\n\n", Average16H4, Average64H4, Average256H4, Average1024H4, Average8192H4);
+  return 0;
+}
+
+
