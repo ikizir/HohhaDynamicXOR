@@ -45,7 +45,7 @@ uint64_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOu
   // SaltData is a 8 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
   register uint32_t tt, M;
   register size_t t;
-  register uint8_t XORVal, LastPlainTextVal = 0, LastCipherTextVal = 0; // Last PLAINTEXT byte processed. It will be an input parameter for the next encryption
+  register uint32_t XORVal, LastPlainTextVal = 0, LastCipherTextVal; // Last PLAINTEXT byte processed. It will be an input parameter for the next encryption
   register uint64_t Checksum=0;
   register uint32_t BodyMask = GetBodyLen(K); // +1 because we will use this "Mersenne number" for & operation instead of modulus operation
   uint8_t Body[MAX_BODY_SIZE];
@@ -75,7 +75,7 @@ uint64_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOu
     XORVal ^= Body[M]; 
     XORVal ^= (1 << (KeyCheckSum&31)); 
     KeyCheckSum = ROL32_1(KeyCheckSum);
-    M = (M ^ (*(Salt + (LastPlainTextVal&(SALT_SIZE-1))))) & BodyMask; 
+    M = (M ^ Salt[LastPlainTextVal&(SALT_SIZE-1)]) & BodyMask; 
     
     for (tt=2; tt < GetNumJumps(K); tt++)
     {
@@ -83,8 +83,8 @@ uint64_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOu
       XORVal ^= Body[M]; 
       M = (M ^ Body[M]) & BodyMask; 
     }
-    Checksum += InOutBuf[t]; 
-    LastCipherTextVal = InOutBuf[t]; 
+    LastCipherTextVal = InOutBuf[t]; // This is still the plaintext value. We use LastCipherTextVal as a temp var here
+    Checksum += LastCipherTextVal; 
     
     XORVal ^= (1 << (M&7)); 
     InOutBuf[t] ^= ((uint8_t)(XORVal));
@@ -147,7 +147,9 @@ I am still looking for ways to better "hide" key body elements against this poss
 void xorGetKey(uint8_t NumJumps, uint32_t BodyLen, uint8_t *KeyBuf);
 ```
 Creates an encryption key.
-NumJumps is the number of jumps(or rounds) to encrypt or decrypt data. The actual maximum value is 4(But if you find it weak, We(or you) can increase that limit. We just have to write hand optimized functions). This parameter directly affects speed and strength of the algorithm. If you choose higher values, the encryption will be more secure but slower. We suggest using minimum 3 jumps. And, interestingly, in our benchmarks results for 3 jumps are faster than 2 jumps!(due to branch prediction I guess)
+NumJumps is the number of jumps(or rounds) to encrypt or decrypt data. The actual maximum value is 4(But if you find it weak, We(or you) can increase that limit. We just have to write hand optimized functions). This parameter directly affects speed and strength of the algorithm. If you choose higher values, the encryption will be more secure but slower. 
+For a busy site with no critical data, 2 jumps is ideal.
+We suggest using minimum 3 jumps for critical data. 
 
 BodyLen is the number of bytes in the key body. It must be a power of 2 (e.g. 64,128,256 ...). 
 We set current key body "hard" maximum limit to 256 due to our algorithm design. If you want to create derivatives to use higher key body lengths, you must make some minor modifications on encryptor and decryptor function to assure right key coverage. 
