@@ -529,7 +529,7 @@ static inline int ROR32_1(int v) {
 /* Function used to determine if V is unique among the first Pos elements
  * Used by the xorGetKey function to check particle length uniqueness
  */
-#define MAX_BODY_SIZE 1024
+#define MAX_BODY_SIZE 256 // DO NOT SET THIS LIMIT TO MORE THAN 256 BYTES! Or you must also change encryption&decryption code for key coverage
 
 #define SP_NUM_JUMPS 0
 #define SP_BODY_LEN 1
@@ -548,7 +548,7 @@ static inline int ROR32_1(int v) {
 // Result buffer must be enough to store key!! No error checking is done!!!
 void xorGetKey(uint8_t NumJumps, uint32_t BodyLen, uint8_t *KeyBuf)
 {
-  assert(NumJumps > 1 && BodyLen > 7 && NumJumps<MAX_NUM_JUMPS && ((BodyLen-1)&BodyLen) == 0);
+  assert(NumJumps > 1 && BodyLen > 7 && BodyLen<=MAX_BODY_SIZE & NumJumps<MAX_NUM_JUMPS && ((BodyLen-1)&BodyLen) == 0);
   
 #ifdef VERBOSE
   printf("Generating key ... BodyLen: %u NumJumps: %u\n",BodyLen,NumJumps);
@@ -628,7 +628,7 @@ uint64_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOu
     {
       // All following jumps are based on body values
       XORVal ^= Body[M]; 
-      M = (M + Body[M]) & BodyMask; 
+      M = (M ^ Body[M]) & BodyMask; 
     }
     Checksum += InOutBuf[t]; 
     LastCipherTextVal = InOutBuf[t]; 
@@ -683,7 +683,7 @@ uint64_t xorDecrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOu
     {
       // All following jumps are based on body values
       XORVal ^= Body[M]; 
-      M = (M + Body[M]) & BodyMask; 
+      M = (M ^ Body[M]) & BodyMask; 
     }
     XORVal ^= (1 << (M&7)); 
     
@@ -834,7 +834,7 @@ uint64_t xorEncryptHOP3(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
     
     // All following jumps are based on body values
     XORVal ^= Body[M]; 
-    M = (M + Body[M]) & BodyMask; 
+    M = (M ^ Body[M]) & BodyMask; 
 
     Checksum += InOutBuf[t]; 
     LastCipherTextVal = InOutBuf[t]; 
@@ -887,7 +887,7 @@ uint64_t xorDecryptHOP3(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
     
     // All following jumps are based on body values
     XORVal ^= Body[M]; 
-    M = (M + Body[M]) & BodyMask; 
+    M = (M ^ Body[M]) & BodyMask; 
 
     XORVal ^= (1 << (M&7)); 
     
@@ -941,9 +941,9 @@ uint64_t xorEncryptHOP4(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
     
     // All following jumps are based on body values
     XORVal ^= Body[M]; 
-    M = (M + Body[M]) & BodyMask; 
+    M = (M ^ Body[M]) & BodyMask; 
     XORVal ^= Body[M]; 
-    M = (M + Body[M]) & BodyMask; 
+    M = (M ^ Body[M]) & BodyMask; 
     
     Checksum += InOutBuf[t]; 
     LastCipherTextVal = InOutBuf[t]; 
@@ -996,9 +996,9 @@ uint64_t xorDecryptHOP4(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
     
     // All following jumps are based on body values
     XORVal ^= Body[M]; 
-    M = (M + Body[M]) & BodyMask; 
+    M = (M ^ Body[M]) & BodyMask; 
     XORVal ^= Body[M]; 
-    M = (M + Body[M]) & BodyMask; 
+    M = (M ^ Body[M]) & BodyMask; 
     
     XORVal ^= (1 << (M&7)); 
     
@@ -1571,6 +1571,7 @@ void CreateVisualProofs()
   
 }
 
+
 int main()
 {
   uint32_t BodyLen = 128, NumJumps=2;
@@ -1659,5 +1660,3 @@ int main()
          "%19.2f %19.2f %19.2f %19.2f %19.2f\n\n", Average16H4, Average64H4, Average256H4, Average1024H4, Average8192H4);
   return 0;
 }
-
-
