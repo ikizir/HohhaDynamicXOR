@@ -41,57 +41,55 @@ So, every time we encrypt a byte, we also change the key. *It's a bit more compl
 Here is the encryption code:
 ```C
 uint64_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
-{ // Encrypts message and returns checksum of the InOutBuf BEFORE encyption
+{ // Encrypts message and returns checksum of the PLAINTEXT
   // SaltData is a 8 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
-  register uint32_t tt, M;
+  register uint32_t tt, Salt1,Salt2;
   register size_t t;
-  register uint32_t XORVal, LastPlainTextVal = 0, LastCipherTextVal; // Last PLAINTEXT byte processed. It will be an input parameter for the next encryption
+  register uint32_t XORVal; // Last PLAINTEXT byte processed. It will be an input parameter for the next encryption
+  register uint32_t M; // Last PLAINTEXT byte processed. It will be an input parameter for the next encryption
   register uint64_t Checksum=0;
-  register uint32_t BodyMask = GetBodyLen(K); // +1 because we will use this "Mersenne number" for & operation instead of modulus operation
+  register uint32_t BodyMask = GetBodyLen(K)-1; // +1 because we will use this "Mersenne number" for & operation instead of modulus operation
+  register uint8_t *p = InOutBuf, *bp;
+  
   uint8_t Body[MAX_BODY_SIZE];
   
-  memcpy(Body,K+SP_BODY,BodyMask);
-  BodyMask--;
+  memcpy(Body,K+SP_BODY, BodyMask+1);
   
   // We compute our start values as much randomly as possible upon salt(or nonce or iv) value which is transmitted with every data to be encrypted or decrypted
-  LastCipherTextVal = Salt[0];
-  LastCipherTextVal &= Salt[1]; 
-  LastCipherTextVal ^= Salt[2]; 
-  LastCipherTextVal &= Salt[3]; 
-  LastCipherTextVal ^= Salt[4]; 
-  LastCipherTextVal &= Salt[5]; 
-  LastCipherTextVal ^= Salt[6]; 
-  LastCipherTextVal &= Salt[7]; 
+  XORVal = (((Salt[0] ^ Salt[1]) & (Salt[2] | Salt[3])) & ((Salt[4] ^ Salt[7]) ^ (Salt[5] ^ Salt[6]))) & BodyMask;
+  Salt1 = (uint32_t)(Salt[0]) & ((uint32_t)(Salt[1]) << 8) & ((uint32_t)(Salt[2]) << 16) & ((uint32_t)(Salt[3]) << 24);
+  Salt2 = (uint32_t)(Salt[4]) & ((uint32_t)(Salt[5]) << 8) & ((uint32_t)(Salt[6]) << 16) & ((uint32_t)(Salt[7]) << 24);
   
   // Our initial jump position in the key body depends on a random value
-  M = (BodyMask & Salt[LastCipherTextVal&(SALT_SIZE-1)]);
+  M = (BodyMask & Salt2);
   
   for (t=0; t<InOutDataLen; t++)
-  {  
-    // On first jump, we take previous encrypted byte and we jump to another position depending on its value
-    XORVal = (Checksum&8) ^ Body[M]; 
-    M = (M ^ LastCipherTextVal) & BodyMask; 
+  { 
+    bp = (Body + M);
+    Checksum += *p; 
+    *bp ^= *p ^ (uint8_t)((Checksum ^ XORVal) & 255);
+    *p ^= ((uint8_t)(XORVal));
+
+    // First jump
+    XORVal ^=  *bp; 
+    XORVal ^= (uint8_t)(1 << (Salt1&7)); Salt2 = ROL32_1(Salt2); // Add a pseudo-random bit based on first part of the Salt
+    M = (M ^ XORVal) & BodyMask; 
+    XORVal ^= (uint8_t)(1 << (Salt2&7)); Salt1 = ROL32_1(Salt1); // Add another pseudo-random bit based on second part of the Salt
     
-    XORVal ^= Body[M]; 
-    XORVal ^= (1 << (KeyCheckSum&31)); 
-    KeyCheckSum = ROL32_1(KeyCheckSum);
-    M = (M ^ Salt[LastPlainTextVal&(SALT_SIZE-1)]) & BodyMask; 
+    // Second jump
+    bp = (Body + M);
+    XORVal ^= *bp; 
+    XORVal ^= (uint8_t)(1 << (KeyCheckSum&7));  KeyCheckSum = ROL32_1(KeyCheckSum); // Add another pseudo-random bit based on key crc
+    M = (M ^ Salt1) & BodyMask;
+    XORVal ^= (1 << (M&7)); 
     
     for (tt=2; tt < GetNumJumps(K); tt++)
     {
       // All following jumps are based on body values
-      XORVal ^= Body[M]; 
+      bp = (Body + M); XORVal ^= *bp; 
       M = (M ^ Body[M]) & BodyMask; 
     }
-    LastCipherTextVal = InOutBuf[t]; // This is still the plaintext value. We use LastCipherTextVal as a temp var here
-    Checksum += LastCipherTextVal; 
-    
-    XORVal ^= (1 << (M&7)); 
-    InOutBuf[t] ^= ((uint8_t)(XORVal));
-    LastPlainTextVal = LastCipherTextVal; 
-    LastCipherTextVal = InOutBuf[t];
-    
-    Body[M] ^= LastCipherTextVal;
+    p++;
   }
   return Checksum;
 } 
