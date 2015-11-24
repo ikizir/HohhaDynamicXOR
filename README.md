@@ -28,35 +28,77 @@ We will all use this for our specific needs. And if we think carefully, we can a
 Hohha Dynamic XOR is a new symmetric encryption algorithm developed for Hohha Secure Instant Messaging Platform and opened to the public via dual licence MIT and GPL.
 
 The essential logic of the algorithm is using the key as a "jump table" which is dynamically updated with every "jump".
-
-To better understand how the code functions, suppose that we don't have a complex function.
-
-Given the key body length(L) is a power of 2, and M is an integer that tell us where we are in the "key body":
-
-We just take the byte at position M of the key body, we XOR that byte with the byte to be encrypted(X).
-We increase the byte at position M and "jump to" (M+X)%L
-
-So, every time we encrypt a byte, we also change the key. *It's a bit more complicated than this*. But this is fundamentally the basic logic. In a real function, we do more complex operations with more variables like the salt(or nonce) value, the last byte we encrypted, the key checksum(against related key attacks) etc.
+Our aim is to create maximum random output from "any" input. It may an all 0 file or all random distribution. It doesn't matter. In order to do this, we have : 
+  //   Salt: 8 bytes of random salt data
+  //   KeyCheckSum(or KC): 4 bytes of key body crc
+  //   Body: KeyBody bytes of key body
+  //   M: Our moving pointer on the key body, which tells us where we are
+  //   InOutBuf: Plaintext(or ciphertext for decryption)
+We must use those variables in order to:
+  //   Create maximum random output to prevent detecting a pattern on ciphertext
+  //   Hide the key body even if the attacker knows both the ciphertext and the plaintext
+Method:
+  //   Our first number to be XORed with the first plaintext byte completely depends on the random salt value
+  //   Our starting point on the key body completely depends on the random salt value
+  //   All subsequent ciphertext outputs depend on the starting values: Even attacker intercepts the ciphertext and plaintext,
+  //       the data gathered will not be useful for subsequent encryptions. Because, they will use different salt data.
+  //   To hide our key body elements
+  //     We XOR at least two body elements(jumps) with each others.
+  //     We change 2 pseudo random bits of two random positions of this XOR result according to our salt data
+  //     We change 1 pseudo random bit at a pseudo random position of this XOR result according to our jump position; 
+  //     Our jump start point and steps are hidden
+  //     We update our key body according the last XOR value; but to add a pseudo randomness and to ensure to follow a different path, 
+  //        we add 1 bit of pseudo randomness according to key body crc which is not used for anything else in the function
+  //        So, for every byte encrypted, one key body element(at an unknown position to attacker) is set to a different value
+  //     We use the previous XOR value obtained to XOR with the next XOR value(chaining)
+  
+So, we start from a random position, we make random steps, every time we encrypt a byte, we also change the key. This is fundamentally the basic logic. 
 
 Here is the encryption code:
 ```C
 uint64_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
 { // Encrypts message and returns checksum of the PLAINTEXT
   // SaltData is a 8 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
-  register uint32_t tt, Salt1,Salt2;
+  // Our aim is to create maximum random output from "any" input. It may an all 0 file or all random distribution. It doesn't matter
+  // In order to do this, we have : 
+  //   Salt: 8 bytes of random salt data
+  //   KeyCheckSum(or KC): 4 bytes of key body crc
+  //   Body: KeyBody bytes of key body
+  //   M: Our moving pointer on the key body, which tells us where we are
+  //   InOutBuf: Plaintext(or ciphertext for decryption)
+  // We must use those variables in order to:
+  //   Create maximum random output to prevent detecting a pattern on ciphertext
+  //   Hide the key body even if the attacker knows both the ciphertext and the plaintext
+  // Method:
+  //   Our first number to be XORed with the first plaintext byte completely depends on the random salt value
+  //   Our starting point on the key body completely depends on the random salt value
+  //   All subsequent ciphertext outputs completely depend on the starting values: Even attacker intercepts the ciphertext and plaintext,
+  //       the data gathered will not be useful for subsequent encryptions. Because, they will use different salt data.
+  //   To hide our key body elements
+  //     We XOR at least two body elements(jumps) with each others.
+  //     We change 2 pseudo random bits of two random positions of this XOR result according to our salt data
+  //     We change 1 pseudo random bit at a pseudo random position of this XOR result according to our jump position; 
+  //     Our jump start point and steps are hidden
+  //     We update our key body according the last XOR value; but to add a pseudo randomness and to ensure to follow a different path, 
+  //        we add 1 bit of pseudo randomness according to key body crc which is not used for anything else in the function
+  //        So, for every byte encrypted, one key body element(at an unknown position to attacker) is set to a different value
+  //     We use the previous XOR value obtained to XOR with the next XOR value(chaining)
+  
+  register uint32_t Salt1,Salt2;
+  register uint8_t tt;
   register size_t t;
-  register uint32_t XORVal; // Last PLAINTEXT byte processed. It will be an input parameter for the next encryption
-  register uint32_t M; // Last PLAINTEXT byte processed. It will be an input parameter for the next encryption
+  register uint32_t XORVal; 
+  register uint32_t M; // This is our moving pointer on key body bytes
+  register uint32_t KC=KeyCheckSum; 
   register uint64_t Checksum=0;
   register uint32_t BodyMask = GetBodyLen(K)-1; // +1 because we will use this "Mersenne number" for & operation instead of modulus operation
   register uint8_t *p = InOutBuf, *bp;
-  
   uint8_t Body[MAX_BODY_SIZE];
   
   memcpy(Body,K+SP_BODY, BodyMask+1);
   
   // We compute our start values as much randomly as possible upon salt(or nonce or iv) value which is transmitted with every data to be encrypted or decrypted
-  XORVal = (((Salt[0] ^ Salt[1]) & (Salt[2] | Salt[3])) & ((Salt[4] ^ Salt[7]) ^ (Salt[5] ^ Salt[6]))) & BodyMask;
+  XORVal = (((Salt[0] ^ Salt[1]) & (Salt[2] | Salt[3])) & ((Salt[4] ^ Salt[7]) ^ (Salt[5] ^ Salt[6]))) & 255;
   Salt1 = (uint32_t)(Salt[0]) & ((uint32_t)(Salt[1]) << 8) & ((uint32_t)(Salt[2]) << 16) & ((uint32_t)(Salt[3]) << 24);
   Salt2 = (uint32_t)(Salt[4]) & ((uint32_t)(Salt[5]) << 8) & ((uint32_t)(Salt[6]) << 16) & ((uint32_t)(Salt[7]) << 24);
   
@@ -65,29 +107,31 @@ uint64_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOu
   
   for (t=0; t<InOutDataLen; t++)
   { 
+    XORVal &= 0xff;
     bp = (Body + M);
     Checksum += *p; 
-    *bp ^= *p ^ (uint8_t)((Checksum ^ XORVal) & 255);
+    *bp ^= (uint8_t)(XORVal) ^ (uint8_t)(1 << (KC&7));  // Add a pseudo-random bit based on key crc
+    ROL32_1(KC); 
     *p ^= ((uint8_t)(XORVal));
 
     // First jump
     XORVal ^=  *bp; 
-    XORVal ^= (uint8_t)(1 << (Salt1&7)); Salt2 = ROL32_1(Salt2); // Add a pseudo-random bit based on first part of the Salt
+    XORVal ^= (uint8_t)((uint8_t)1 << (uint8_t)(Salt1&7)); ROL32_1(Salt2); // Add a pseudo-random bit based on first part of the Salt
     M = (M ^ XORVal) & BodyMask; 
-    XORVal ^= (uint8_t)(1 << (Salt2&7)); Salt1 = ROL32_1(Salt1); // Add another pseudo-random bit based on second part of the Salt
+    XORVal ^= (uint8_t)((uint8_t)1 << (uint8_t)(Salt2&7)); ROL32_1(Salt1); // Add another pseudo-random bit based on second part of the Salt
     
     // Second jump
     bp = (Body + M);
     XORVal ^= *bp; 
-    XORVal ^= (uint8_t)(1 << (KeyCheckSum&7));  KeyCheckSum = ROL32_1(KeyCheckSum); // Add another pseudo-random bit based on key crc
     M = (M ^ Salt1) & BodyMask;
-    XORVal ^= (1 << (M&7)); 
+    XORVal ^= (1 << (M&7)); // Add another pseudo-random bit based on our position on key body
     
     for (tt=2; tt < GetNumJumps(K); tt++)
     {
       // All following jumps are based on body values
-      bp = (Body + M); XORVal ^= *bp; 
-      M = (M ^ Body[M]) & BodyMask; 
+      bp = (Body + M); 
+      XORVal ^= *bp; 
+      M = (M ^ XORVal) & BodyMask;;  
     }
     p++;
   }
@@ -101,7 +145,8 @@ Briefly, to decypher a ciphertext, a cracker needs to find out the key, and, to 
 I believe this algorithm is the future of encryption. It may not be perfect. However, I believe, this "dynamic key" model is the right way for encryption security. This project is in the public domain, thus public property, and I believe we all can benefit greatly from it. By Open Sourcing this code, I hope to make it faster and stronger together.
 
 The algorithm is quite young, but, as demonstrated by the visual proofs at my blog http://ismail-kizir.blogspot.com.tr/2015/11/visual-proofs-of-hohha-dynamic-xor.html
-, it seems to have a good random distribution and to be promising. We are constantly working on it to improve.
+, it seems to have a good random distribution and to be promising. 
+The algorithm is considered to be stable unless proven otherwise by the tests we will apply.
 
 
 Please feel free to test it and share your success or faux-pas: ikizir@gmail.com
@@ -164,7 +209,12 @@ Suppose that we want to create a key with 2 jumps and a body size of 128 bytes, 
 uint32_t KeyCheckSum;
 unsigned RawKeyLen = xorComputeKeyBufLen(BODY_LEN);
 uint8_t *KeyBuf = (uint8_t *)malloc(RawKeyLen);
-xorGetKey(NumJumps, BodyLen, KeyBuf);
+Err = xorGetKey(NumJumps, BodyLen, KeyBuf);
+if (Err != 0)
+{
+  printf("Couldn't create the key. Error: %d\n",Err);
+  exit(-1);
+}
 KeyCheckSum = xorComputeKeyCheckSum(KeyBuf);
 ```
 
@@ -230,7 +280,12 @@ void Test1(unsigned NumJumps, unsigned BodyLen)
   SaltData = OriginalSaltData;
   
   printf("----------- TEST 1: BASIC FUNCTIONALITY(%u Jumps) --------------\n",NumJumps);
-  xorGetKey(NumJumps, BodyLen, KeyBuf);
+  int Err = xorGetKey(NumJumps, BodyLen, KeyBuf);
+  if (Err != 0)
+  {
+    printf("Couldn't create the key. Error: %d\n",Err);
+    exit(-1);
+  }
   KeyCheckSum = xorComputeKeyCheckSum(KeyBuf);
   Base64EncodedKeyStr = Base64Encode((const char *)KeyBuf, RawKeyLen);
   printf("Base64 encoded key: %s\n", Base64EncodedKeyStr);
@@ -313,4 +368,5 @@ In real life scenarios, it is crucial to transmit Salt data secretly.
 In order to realize this, you must create a random salt; use that random salt to encrypt the plaintext and you must encrypt the salt with the key, using key's original salt data.
 The receiver will first decrypt the salt data using key's original salt data in order to obtain actual salt data, then will decrypt the ciphertext using this actual salt data. I am going to publish source code examples here.
 
+I will put here the real life code samples from my own applications.
 ... I am still writing the documentation --- to be continued ---
