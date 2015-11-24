@@ -38,13 +38,15 @@ Our aim is to create maximum random output from "any" input. It may an all 0 fil
 * We must use those variables in order to:
 *   Create maximum random output to prevent detecting a pattern on ciphertext
 *   Hide the key body even if the attacker knows both the ciphertext and the plaintext
-* Method:
+
+Method:
+
 *   Our first number to be XORed with the first plaintext byte completely depends on the random salt value
 *   Our starting point on the key body completely depends on the random salt value
 *   All subsequent ciphertext outputs depend on the starting values: Even attacker intercepts the ciphertext and plaintext,
 *       the data gathered will not be useful for subsequent encryptions. Because, they will use different salt data.
 *   To hide our key body elements
-*     We XOR at least two body elements(jumps) with each others.
+*     We XOR at least two body elements(jumps) with each other.
 *     We change 2 pseudo random bits of two random positions of this XOR result according to our salt data
 *     We change 1 pseudo random bit at a pseudo random position of this XOR result according to our jump position; 
 *     Our jump start point and steps are hidden
