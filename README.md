@@ -29,31 +29,32 @@ Hohha Dynamic XOR is a new symmetric encryption algorithm developed for Hohha Se
 
 The essential logic of the algorithm is using the key as a "jump table" which is dynamically updated with every "jump".
 Our aim is to create maximum random output from "any" input. It may an all 0 file or all random distribution. It doesn't matter. In order to do this, we have : 
-  //   Salt: 8 bytes of random salt data
-  //   KeyCheckSum(or KC): 4 bytes of key body crc
-  //   Body: KeyBody bytes of key body
-  //   M: Our moving pointer on the key body, which tells us where we are
-  //   InOutBuf: Plaintext(or ciphertext for decryption)
-We must use those variables in order to:
-  //   Create maximum random output to prevent detecting a pattern on ciphertext
-  //   Hide the key body even if the attacker knows both the ciphertext and the plaintext
-Method:
-  //   Our first number to be XORed with the first plaintext byte completely depends on the random salt value
-  //   Our starting point on the key body completely depends on the random salt value
-  //   All subsequent ciphertext outputs depend on the starting values: Even attacker intercepts the ciphertext and plaintext,
-  //       the data gathered will not be useful for subsequent encryptions. Because, they will use different salt data.
-  //   To hide our key body elements
-  //     We XOR at least two body elements(jumps) with each others.
-  //     We change 2 pseudo random bits of two random positions of this XOR result according to our salt data
-  //     We change 1 pseudo random bit at a pseudo random position of this XOR result according to our jump position; 
-  //     Our jump start point and steps are hidden
-  //     We update our key body according the last XOR value; but to add a pseudo randomness and to ensure to follow a different path, 
-  //        we add 1 bit of pseudo randomness according to key body crc which is not used for anything else in the function
-  //        So, for every byte encrypted, one key body element(at an unknown position to attacker) is set to a different value
-  //     We use the previous XOR value obtained to XOR with the next XOR value(chaining)
-  
-So, we start from a random position, we make random steps, every time we encrypt a byte, we also change the key. This is fundamentally the basic logic. 
 
+* Salt: 8 bytes of random salt data
+* KeyCheckSum(or KC): 4 bytes of key body crc
+* Body: KeyBody bytes of key body
+* M: Our moving pointer on the key body, which tells us where we are
+* InOutBuf: Plaintext(or ciphertext for decryption)
+* We must use those variables in order to:
+*   Create maximum random output to prevent detecting a pattern on ciphertext
+*   Hide the key body even if the attacker knows both the ciphertext and the plaintext
+* Method:
+*   Our first number to be XORed with the first plaintext byte completely depends on the random salt value
+*   Our starting point on the key body completely depends on the random salt value
+*   All subsequent ciphertext outputs depend on the starting values: Even attacker intercepts the ciphertext and plaintext,
+*       the data gathered will not be useful for subsequent encryptions. Because, they will use different salt data.
+*   To hide our key body elements
+*     We XOR at least two body elements(jumps) with each others.
+*     We change 2 pseudo random bits of two random positions of this XOR result according to our salt data
+*     We change 1 pseudo random bit at a pseudo random position of this XOR result according to our jump position; 
+*     Our jump start point and steps are hidden
+*     We update our key body according the last XOR value; but to add a pseudo randomness and to ensure to follow a different path, 
+*     we add 1 bit of pseudo randomness according to key body crc which is not used for anything else in the function
+*     So, for every byte encrypted, one key body element(at an unknown position to attacker) is set to a different value
+*     We use the previous XOR value obtained to XOR with the next XOR value(chaining)
+  
+Briefly, we start from a random position, we make random steps, we xor hidden body values and every time we encrypt a byte, we also change this unknown body values. And the result of the next encrypted ciphertext depends on the previous one. This is fundamentally the basic logic. 
+</pre>
 Here is the encryption code:
 ```C
 uint64_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
