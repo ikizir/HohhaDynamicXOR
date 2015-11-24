@@ -50,7 +50,7 @@ Method:
 *     We change 2 pseudo random bits of two random positions of this XOR result according to our salt data
 *     We change 1 pseudo random bit at a pseudo random position of this XOR result according to our jump position; 
 *     Our jump start point and steps are hidden
-*     We update our key body according the last XOR value; but to add a pseudo randomness and to ensure to follow a different path, 
+*     We update our key body according the last XOR value, in order to add a pseudo randomness and to be sure it follows a different path, 
 *     we add 1 bit of pseudo randomness according to key body crc which is not used for anything else in the function
 *     So, for every byte encrypted, one key body element(at an unknown position to attacker) is set to a different value
 *     We use the previous XOR value obtained to XOR with the next XOR value(chaining)
