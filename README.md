@@ -176,6 +176,9 @@ And every time we encrypt a byte from plaintext, we encrypt a byte from key body
 
 When the "analyze" begins: I don't want to give huge numbers, but the rest of analyze, considering 128^3 possibilities on key body, for every byte encrypted, seems "enough hard". Am I wrong?
 
+If you want me to give a number: The brute force attack complexity to break this algorithm is: 
+  2^64 * 2^(KeyBodyLen*8) for key: 2^1112 for 256 bytes key body length. 
+
 As I told you, I am not an expert.
 I don't claim it is "impossible" to break.But those are the base numbers. I may be wrong. And this is a public place. Correct me if I am wrong please!
 I just tell, for example, for my specific needs in a chat application, where the keys are not used for a very long time, it seems enough. 
