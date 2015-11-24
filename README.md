@@ -190,7 +190,33 @@ So far, we detected a "unique" vulnarability, which can be "theoretically" defen
 
 ## Usage
 ```C
-void xorGetKey(uint8_t NumJumps, uint32_t BodyLen, uint8_t *KeyBuf);
+int xorGetKey(uint8_t NumJumps, uint32_t BodyLen, uint8_t *KeyBuf)
+{
+  // Creates XOR key
+  // The first byte will be equal to NumJumps
+  // Following 2 bytes is key body length
+  // Following 4 bytes are random salt data
+  // Following BodyLen bytes are random numbers obtained from buffered /dev/urandom data. BODYLEN MUST BE A POWER OF 2!
+  // Result buffer must be enough to store key!! No error checking is done!!!
+  // Return negative on error; zero if successfull
+
+  if (((BodyLen-1) & BodyLen) != 0)
+    return -1; // Key body length must be a power of 2!
+  if (NumJumps < 2)
+    return -2; // Number of jumps must be greater than or equal to 2
+  if (NumJumps > MAX_NUM_JUMPS)
+    return -3;
+  if (BodyLen < 16)
+    return -4;
+  if (BodyLen > MAX_BODY_SIZE)
+    return -5;
+  KeyBuf[SP_NUM_JUMPS] = (uint8_t)(NumJumps&255);
+  KeyBuf[SP_BODY_LEN] = (uint8_t)((BodyLen % 256) & 0xff);
+  KeyBuf[SP_BODY_LEN+1] = (uint8_t)((BodyLen / 256) & 0xff);
+  GetRandomNumbers(SALT_SIZE + BodyLen, KeyBuf + SP_SALT_DATA); // Fill 4 bytes salt data with random numbers
+  return 0;
+}
+
 ```
 Creates an encryption key.
 NumJumps is the number of jumps(or rounds) to encrypt or decrypt data. The actual maximum value is 4(But if you find it weak, We(or you) can increase that limit. We just have to write hand optimized functions). This parameter directly affects speed and strength of the algorithm. If you choose higher values, the encryption will be more secure but slower. 
