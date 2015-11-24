@@ -187,9 +187,11 @@ It is up to you to decide. Take your own risk! Think carefully when to use, wher
 
 There isn't any specific precautions against side channel or any physical type of attack. You must take care of your phone or computer.
 Physical attacks are usually applied by Intelligence Services for highly suspicious persons; it is not my concern, -and I don't want- to protect this kind of people. Even if they are innocent, they can use another algorithm. My goal is to prevent technical surveilance of ordinary people in order to protect their personal privacy; not to protect criminals. 
-Intelligence services don't spend resources to physically follow anyone without reasonable suspicion. Even if they do, I don't want to confront with Intelligence Services for criminals. Even trying to block their "technical surveilance of ordinary people" is a "dangerous act". I haven't black hat.
+Intelligence services don't spend resources to physically follow anyone without reasonable suspicion. Even if they do, I don't want to confront with Intelligence Services for criminals. Even trying to block their "technical surveilance of ordinary people" is a "dangerous act". 
 
 So far, we detected a "unique" vulnarability, which can be "theoretically" defended by the "Crypto Experts": Intercepting both the plaintext AND the salt(nonce). But we consider it only "theoretical" because, key's original salt value is only used to encrypt&decrypt salt values to be transmitted with each ciphertext. Salt values are random by nature. If someone claims this "theoretical possibility", he must also explain us "how" he can intercept the nonce value! But anyway, a "theoretical possibility" is still a threat and you must consider this possibility in your real life applications.
+
+But, we have also found a way to turn this "theoretical disadvantage" into a "practical advantage", by changing "Key's original salt value regularly". We will elaborate this in detail; later in the documentation(Sorry the documentation is still incomplete).
 
 ## Usage
 ```C
