@@ -213,7 +213,7 @@ int xorGetKey(uint8_t NumJumps, uint32_t BodyLen, uint8_t *KeyBuf)
   KeyBuf[SP_NUM_JUMPS] = (uint8_t)(NumJumps&255);
   KeyBuf[SP_BODY_LEN] = (uint8_t)((BodyLen % 256) & 0xff);
   KeyBuf[SP_BODY_LEN+1] = (uint8_t)((BodyLen / 256) & 0xff);
-  GetRandomNumbers(SALT_SIZE + BodyLen, KeyBuf + SP_SALT_DATA); // Fill 4 bytes salt data with random numbers
+  GetRandomNumbers(SALT_SIZE + BodyLen, KeyBuf + SP_SALT_DATA); // Fill 8 bytes salt + key body data with random numbers
   return 0;
 }
 
