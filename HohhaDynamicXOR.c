@@ -548,15 +548,16 @@ char *GetBinStr(uint32_t val, char *ResBuf)
 #define GetNumJumps(K) (K[SP_NUM_JUMPS])
 #define xorComputeKeyBufLen(BodyLen) (SP_BODY+BodyLen)
 
-// Creates XOR key
-// The first byte will be equal to NumJumps
-// Following 2 bytes is key body length
-// Following 4 bytes are random salt data
-// Following BodyLen bytes are random numbers obtained from buffered /dev/urandom data. BODYLEN MUST BE A POWER OF 2!
-// Result buffer must be enough to store key!! No error checking is done!!!
-// Return negative on error; zero if successfull
 int xorGetKey(uint8_t NumJumps, uint32_t BodyLen, uint8_t *KeyBuf)
 {
+  // Creates XOR key
+  // The first byte will be equal to NumJumps
+  // Following 2 bytes is key body length
+  // Following 4 bytes are random salt data
+  // Following BodyLen bytes are random numbers obtained from buffered /dev/urandom data. BODYLEN MUST BE A POWER OF 2!
+  // Result buffer must be enough to store key!! No error checking is done!!!
+  // Return negative on error; zero if successfull
+
   if (((BodyLen-1) & BodyLen) != 0)
     return -1; // Key body length must be a power of 2!
   if (NumJumps < 2)
@@ -602,7 +603,7 @@ void xorAnalyzeKey(uint8_t *K)
  * KeyCheckSum is 32 bit CRC checksum: Used to prevent "Related key attacks". If some bits of the key changes, entire cyphertext changes
  * InOutDataLen is the length of the data to be encrypted or decrypted
  * InOutBuf is the pointer to the data to be encrypted or decrypted
- * Salt(or nonce) is a 4 bytes random number array.
+ * Salt(or nonce) is a 8 bytes random number array.
  * This logic ensures us this: An original key is created with an original salt value, for example for an online communication
  * for each distinct packet, in the packet header, we can transmit a specific salt value for that packet and we can encrypt it with original key and salt
  * when the receiver receives the packet, decrypts the new salt value with the original salt value of the key and passes that salt value to function,
@@ -636,7 +637,7 @@ uint64_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOu
   //        we add 1 bit of pseudo randomness according to key body crc which is not used for anything else in the function
   //        So, for every byte encrypted, one key body element(at an unknown position to attacker) is set to a different value
   //     We use the previous XOR value obtained to XOR with the next XOR value(chaining)
-  
+  //  The brute force attack complexity to break this algorithm is: 2^64 * 2^(KeyBodyLen*8) or 256^PlainTextLength whichever is cheaper
   register uint32_t Salt1,Salt2;
   register uint8_t tt;
   register size_t t;
@@ -651,12 +652,13 @@ uint64_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOu
   memcpy(Body,K+SP_BODY, BodyMask+1);
   
   // We compute our start values as much randomly as possible upon salt(or nonce or iv) value which is transmitted with every data to be encrypted or decrypted
-  XORVal = (((Salt[0] ^ Salt[1]) & (Salt[2] | Salt[3])) & ((Salt[4] ^ Salt[7]) ^ (Salt[5] ^ Salt[6]))) & 255;
+  XORVal = ((( (Salt[0] ^ Salt[1]) ^ (KC&0xff)) ^ ( (Salt[2] ^ Salt[3]) ^ ((KC&0xff00)>>8) )) ^ (( (Salt[4] ^ Salt[7]) ^ ((KC&0xff0000)>>16) ) ^ ( (Salt[5] ^ Salt[6]) ^ ((KC&0xff000000)>>24) ))) & 0xff;
+  
   Salt1 = (uint32_t)(Salt[0]) & ((uint32_t)(Salt[1]) << 8) & ((uint32_t)(Salt[2]) << 16) & ((uint32_t)(Salt[3]) << 24);
   Salt2 = (uint32_t)(Salt[4]) & ((uint32_t)(Salt[5]) << 8) & ((uint32_t)(Salt[6]) << 16) & ((uint32_t)(Salt[7]) << 24);
   
   // Our initial jump position in the key body depends on a random value
-  M = (BodyMask & Salt2);
+  M = (Salt2 ^ KC) & BodyMask;
   
   for (t=0; t<InOutDataLen; t++)
   { 
@@ -708,12 +710,12 @@ uint64_t xorDecrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOu
   memcpy(Body,K+SP_BODY, BodyMask+1);
   
   // We compute our start values as much randomly as possible upon salt(or nonce or iv) value which is transmitted with every data to be encrypted or decrypted
-  XORVal = (((Salt[0] ^ Salt[1]) & (Salt[2] | Salt[3])) & ((Salt[4] ^ Salt[7]) ^ (Salt[5] ^ Salt[6]))) & 255;
+  XORVal = ((( (Salt[0] ^ Salt[1]) ^ (KC&0xff)) ^ ( (Salt[2] ^ Salt[3]) ^ ((KC&0xff00)>>8) )) ^ (( (Salt[4] ^ Salt[7]) ^ ((KC&0xff0000)>>16) ) ^ ( (Salt[5] ^ Salt[6]) ^ ((KC&0xff000000)>>24) ))) & 0xff;
   Salt1 = (uint32_t)(Salt[0]) & ((uint32_t)(Salt[1]) << 8) & ((uint32_t)(Salt[2]) << 16) & ((uint32_t)(Salt[3]) << 24);
   Salt2 = (uint32_t)(Salt[4]) & ((uint32_t)(Salt[5]) << 8) & ((uint32_t)(Salt[6]) << 16) & ((uint32_t)(Salt[7]) << 24);
   
   // Our initial jump position in the key body depends on a random value
-  M = (BodyMask & Salt2);
+  M = (Salt2 ^ KC) & BodyMask;
   
   for (t=0; t<InOutDataLen; t++)
   { 
@@ -767,12 +769,12 @@ uint64_t xorEncryptHOP2(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
   memcpy(Body,K+SP_BODY, BodyMask+1);
   
   // We compute our start values as much randomly as possible upon salt(or nonce or iv) value which is transmitted with every data to be encrypted or decrypted
-  XORVal = (((Salt[0] ^ Salt[1]) & (Salt[2] | Salt[3])) & ((Salt[4] ^ Salt[7]) ^ (Salt[5] ^ Salt[6]))) & 255;
+  XORVal = ((( (Salt[0] ^ Salt[1]) ^ (KC&0xff)) ^ ( (Salt[2] ^ Salt[3]) ^ ((KC&0xff00)>>8) )) ^ (( (Salt[4] ^ Salt[7]) ^ ((KC&0xff0000)>>16) ) ^ ( (Salt[5] ^ Salt[6]) ^ ((KC&0xff000000)>>24) ))) & 0xff;
   Salt1 = (uint32_t)(Salt[0]) & ((uint32_t)(Salt[1]) << 8) & ((uint32_t)(Salt[2]) << 16) & ((uint32_t)(Salt[3]) << 24);
   Salt2 = (uint32_t)(Salt[4]) & ((uint32_t)(Salt[5]) << 8) & ((uint32_t)(Salt[6]) << 16) & ((uint32_t)(Salt[7]) << 24);
   
   // Our initial jump position in the key body depends on a random value
-  M = (BodyMask & Salt2);
+  M = (Salt2 ^ KC) & BodyMask;
   
   for (t=0; t<InOutDataLen; t++)
   { 
@@ -819,12 +821,12 @@ uint64_t xorDecryptHOP2(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
   memcpy(Body,K+SP_BODY, BodyMask+1);
   
   // We compute our start values as much randomly as possible upon salt(or nonce or iv) value which is transmitted with every data to be encrypted or decrypted
-  XORVal = (((Salt[0] ^ Salt[1]) & (Salt[2] | Salt[3])) & ((Salt[4] ^ Salt[7]) ^ (Salt[5] ^ Salt[6]))) & 255;
+  XORVal = ((( (Salt[0] ^ Salt[1]) ^ (KC&0xff)) ^ ( (Salt[2] ^ Salt[3]) ^ ((KC&0xff00)>>8) )) ^ (( (Salt[4] ^ Salt[7]) ^ ((KC&0xff0000)>>16) ) ^ ( (Salt[5] ^ Salt[6]) ^ ((KC&0xff000000)>>24) ))) & 0xff;
   Salt1 = (uint32_t)(Salt[0]) & ((uint32_t)(Salt[1]) << 8) & ((uint32_t)(Salt[2]) << 16) & ((uint32_t)(Salt[3]) << 24);
   Salt2 = (uint32_t)(Salt[4]) & ((uint32_t)(Salt[5]) << 8) & ((uint32_t)(Salt[6]) << 16) & ((uint32_t)(Salt[7]) << 24);
   
   // Our initial jump position in the key body depends on a random value
-  M = (BodyMask & Salt2);
+  M = (Salt2 ^ KC) & BodyMask;
   
   for (t=0; t<InOutDataLen; t++)
   { 
@@ -871,12 +873,12 @@ uint64_t xorEncryptHOP3(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
   memcpy(Body,K+SP_BODY, BodyMask+1);
   
   // We compute our start values as much randomly as possible upon salt(or nonce or iv) value which is transmitted with every data to be encrypted or decrypted
-  XORVal = (((Salt[0] ^ Salt[1]) & (Salt[2] | Salt[3])) & ((Salt[4] ^ Salt[7]) ^ (Salt[5] ^ Salt[6]))) & 255;
+  XORVal = ((( (Salt[0] ^ Salt[1]) ^ (KC&0xff)) ^ ( (Salt[2] ^ Salt[3]) ^ ((KC&0xff00)>>8) )) ^ (( (Salt[4] ^ Salt[7]) ^ ((KC&0xff0000)>>16) ) ^ ( (Salt[5] ^ Salt[6]) ^ ((KC&0xff000000)>>24) ))) & 0xff;
   Salt1 = (uint32_t)(Salt[0]) & ((uint32_t)(Salt[1]) << 8) & ((uint32_t)(Salt[2]) << 16) & ((uint32_t)(Salt[3]) << 24);
   Salt2 = (uint32_t)(Salt[4]) & ((uint32_t)(Salt[5]) << 8) & ((uint32_t)(Salt[6]) << 16) & ((uint32_t)(Salt[7]) << 24);
   
   // Our initial jump position in the key body depends on a random value
-  M = (BodyMask & Salt2);
+  M = (Salt2 ^ KC) & BodyMask;
   
   for (t=0; t<InOutDataLen; t++)
   { 
@@ -927,12 +929,12 @@ uint64_t xorDecryptHOP3(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
   memcpy(Body,K+SP_BODY, BodyMask+1);
   
   // We compute our start values as much randomly as possible upon salt(or nonce or iv) value which is transmitted with every data to be encrypted or decrypted
-  XORVal = (((Salt[0] ^ Salt[1]) & (Salt[2] | Salt[3])) & ((Salt[4] ^ Salt[7]) ^ (Salt[5] ^ Salt[6]))) & 255;
+  XORVal = ((( (Salt[0] ^ Salt[1]) ^ (KC&0xff)) ^ ( (Salt[2] ^ Salt[3]) ^ ((KC&0xff00)>>8) )) ^ (( (Salt[4] ^ Salt[7]) ^ ((KC&0xff0000)>>16) ) ^ ( (Salt[5] ^ Salt[6]) ^ ((KC&0xff000000)>>24) ))) & 0xff;
   Salt1 = (uint32_t)(Salt[0]) & ((uint32_t)(Salt[1]) << 8) & ((uint32_t)(Salt[2]) << 16) & ((uint32_t)(Salt[3]) << 24);
   Salt2 = (uint32_t)(Salt[4]) & ((uint32_t)(Salt[5]) << 8) & ((uint32_t)(Salt[6]) << 16) & ((uint32_t)(Salt[7]) << 24);
   
   // Our initial jump position in the key body depends on a random value
-  M = (BodyMask & Salt2);
+  M = (Salt2 ^ KC) & BodyMask;
   
   for (t=0; t<InOutDataLen; t++)
   { 
@@ -983,12 +985,12 @@ uint64_t xorEncryptHOP4(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
   memcpy(Body,K+SP_BODY, BodyMask+1);
   
   // We compute our start values as much randomly as possible upon salt(or nonce or iv) value which is transmitted with every data to be encrypted or decrypted
-  XORVal = (((Salt[0] ^ Salt[1]) & (Salt[2] | Salt[3])) & ((Salt[4] ^ Salt[7]) ^ (Salt[5] ^ Salt[6]))) & 255;
+  XORVal = ((( (Salt[0] ^ Salt[1]) ^ (KC&0xff)) ^ ( (Salt[2] ^ Salt[3]) ^ ((KC&0xff00)>>8) )) ^ (( (Salt[4] ^ Salt[7]) ^ ((KC&0xff0000)>>16) ) ^ ( (Salt[5] ^ Salt[6]) ^ ((KC&0xff000000)>>24) ))) & 0xff;
   Salt1 = (uint32_t)(Salt[0]) & ((uint32_t)(Salt[1]) << 8) & ((uint32_t)(Salt[2]) << 16) & ((uint32_t)(Salt[3]) << 24);
   Salt2 = (uint32_t)(Salt[4]) & ((uint32_t)(Salt[5]) << 8) & ((uint32_t)(Salt[6]) << 16) & ((uint32_t)(Salt[7]) << 24);
   
   // Our initial jump position in the key body depends on a random value
-  M = (BodyMask & Salt2);
+  M = (Salt2 ^ KC) & BodyMask;
   
   for (t=0; t<InOutDataLen; t++)
   { 
@@ -1042,12 +1044,12 @@ uint64_t xorDecryptHOP4(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
   memcpy(Body,K+SP_BODY, BodyMask+1);
   
   // We compute our start values as much randomly as possible upon salt(or nonce or iv) value which is transmitted with every data to be encrypted or decrypted
-  XORVal = (((Salt[0] ^ Salt[1]) & (Salt[2] | Salt[3])) & ((Salt[4] ^ Salt[7]) ^ (Salt[5] ^ Salt[6]))) & 255;
+  XORVal = ((( (Salt[0] ^ Salt[1]) ^ (KC&0xff)) ^ ( (Salt[2] ^ Salt[3]) ^ ((KC&0xff00)>>8) )) ^ (( (Salt[4] ^ Salt[7]) ^ ((KC&0xff0000)>>16) ) ^ ( (Salt[5] ^ Salt[6]) ^ ((KC&0xff000000)>>24) ))) & 0xff;
   Salt1 = (uint32_t)(Salt[0]) & ((uint32_t)(Salt[1]) << 8) & ((uint32_t)(Salt[2]) << 16) & ((uint32_t)(Salt[3]) << 24);
   Salt2 = (uint32_t)(Salt[4]) & ((uint32_t)(Salt[5]) << 8) & ((uint32_t)(Salt[6]) << 16) & ((uint32_t)(Salt[7]) << 24);
   
   // Our initial jump position in the key body depends on a random value
-  M = (BodyMask & Salt2);
+  M = (Salt2 ^ KC) & BodyMask;
   
   for (t=0; t<InOutDataLen; t++)
   { 
