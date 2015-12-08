@@ -359,83 +359,81 @@ uint8_t *CreateDataBuf(Size)
 
 // Automatically generated CRC function
 // polynomial: 0x104C11DB7
-unsigned int
-digital_update_crc32(unsigned int crc, const unsigned char *data, size_t len)
+static const unsigned int CRC32Table[256] = {
+  0x00000000U,0x04C11DB7U,0x09823B6EU,0x0D4326D9U,
+  0x130476DCU,0x17C56B6BU,0x1A864DB2U,0x1E475005U,
+  0x2608EDB8U,0x22C9F00FU,0x2F8AD6D6U,0x2B4BCB61U,
+  0x350C9B64U,0x31CD86D3U,0x3C8EA00AU,0x384FBDBDU,
+  0x4C11DB70U,0x48D0C6C7U,0x4593E01EU,0x4152FDA9U,
+  0x5F15ADACU,0x5BD4B01BU,0x569796C2U,0x52568B75U,
+  0x6A1936C8U,0x6ED82B7FU,0x639B0DA6U,0x675A1011U,
+  0x791D4014U,0x7DDC5DA3U,0x709F7B7AU,0x745E66CDU,
+  0x9823B6E0U,0x9CE2AB57U,0x91A18D8EU,0x95609039U,
+  0x8B27C03CU,0x8FE6DD8BU,0x82A5FB52U,0x8664E6E5U,
+  0xBE2B5B58U,0xBAEA46EFU,0xB7A96036U,0xB3687D81U,
+  0xAD2F2D84U,0xA9EE3033U,0xA4AD16EAU,0xA06C0B5DU,
+  0xD4326D90U,0xD0F37027U,0xDDB056FEU,0xD9714B49U,
+  0xC7361B4CU,0xC3F706FBU,0xCEB42022U,0xCA753D95U,
+  0xF23A8028U,0xF6FB9D9FU,0xFBB8BB46U,0xFF79A6F1U,
+  0xE13EF6F4U,0xE5FFEB43U,0xE8BCCD9AU,0xEC7DD02DU,
+  0x34867077U,0x30476DC0U,0x3D044B19U,0x39C556AEU,
+  0x278206ABU,0x23431B1CU,0x2E003DC5U,0x2AC12072U,
+  0x128E9DCFU,0x164F8078U,0x1B0CA6A1U,0x1FCDBB16U,
+  0x018AEB13U,0x054BF6A4U,0x0808D07DU,0x0CC9CDCAU,
+  0x7897AB07U,0x7C56B6B0U,0x71159069U,0x75D48DDEU,
+  0x6B93DDDBU,0x6F52C06CU,0x6211E6B5U,0x66D0FB02U,
+  0x5E9F46BFU,0x5A5E5B08U,0x571D7DD1U,0x53DC6066U,
+  0x4D9B3063U,0x495A2DD4U,0x44190B0DU,0x40D816BAU,
+  0xACA5C697U,0xA864DB20U,0xA527FDF9U,0xA1E6E04EU,
+  0xBFA1B04BU,0xBB60ADFCU,0xB6238B25U,0xB2E29692U,
+  0x8AAD2B2FU,0x8E6C3698U,0x832F1041U,0x87EE0DF6U,
+  0x99A95DF3U,0x9D684044U,0x902B669DU,0x94EA7B2AU,
+  0xE0B41DE7U,0xE4750050U,0xE9362689U,0xEDF73B3EU,
+  0xF3B06B3BU,0xF771768CU,0xFA325055U,0xFEF34DE2U,
+  0xC6BCF05FU,0xC27DEDE8U,0xCF3ECB31U,0xCBFFD686U,
+  0xD5B88683U,0xD1799B34U,0xDC3ABDEDU,0xD8FBA05AU,
+  0x690CE0EEU,0x6DCDFD59U,0x608EDB80U,0x644FC637U,
+  0x7A089632U,0x7EC98B85U,0x738AAD5CU,0x774BB0EBU,
+  0x4F040D56U,0x4BC510E1U,0x46863638U,0x42472B8FU,
+  0x5C007B8AU,0x58C1663DU,0x558240E4U,0x51435D53U,
+  0x251D3B9EU,0x21DC2629U,0x2C9F00F0U,0x285E1D47U,
+  0x36194D42U,0x32D850F5U,0x3F9B762CU,0x3B5A6B9BU,
+  0x0315D626U,0x07D4CB91U,0x0A97ED48U,0x0E56F0FFU,
+  0x1011A0FAU,0x14D0BD4DU,0x19939B94U,0x1D528623U,
+  0xF12F560EU,0xF5EE4BB9U,0xF8AD6D60U,0xFC6C70D7U,
+  0xE22B20D2U,0xE6EA3D65U,0xEBA91BBCU,0xEF68060BU,
+  0xD727BBB6U,0xD3E6A601U,0xDEA580D8U,0xDA649D6FU,
+  0xC423CD6AU,0xC0E2D0DDU,0xCDA1F604U,0xC960EBB3U,
+  0xBD3E8D7EU,0xB9FF90C9U,0xB4BCB610U,0xB07DABA7U,
+  0xAE3AFBA2U,0xAAFBE615U,0xA7B8C0CCU,0xA379DD7BU,
+  0x9B3660C6U,0x9FF77D71U,0x92B45BA8U,0x9675461FU,
+  0x8832161AU,0x8CF30BADU,0x81B02D74U,0x857130C3U,
+  0x5D8A9099U,0x594B8D2EU,0x5408ABF7U,0x50C9B640U,
+  0x4E8EE645U,0x4A4FFBF2U,0x470CDD2BU,0x43CDC09CU,
+  0x7B827D21U,0x7F436096U,0x7200464FU,0x76C15BF8U,
+  0x68860BFDU,0x6C47164AU,0x61043093U,0x65C52D24U,
+  0x119B4BE9U,0x155A565EU,0x18197087U,0x1CD86D30U,
+  0x029F3D35U,0x065E2082U,0x0B1D065BU,0x0FDC1BECU,
+  0x3793A651U,0x3352BBE6U,0x3E119D3FU,0x3AD08088U,
+  0x2497D08DU,0x2056CD3AU,0x2D15EBE3U,0x29D4F654U,
+  0xC5A92679U,0xC1683BCEU,0xCC2B1D17U,0xC8EA00A0U,
+  0xD6AD50A5U,0xD26C4D12U,0xDF2F6BCBU,0xDBEE767CU,
+  0xE3A1CBC1U,0xE760D676U,0xEA23F0AFU,0xEEE2ED18U,
+  0xF0A5BD1DU,0xF464A0AAU,0xF9278673U,0xFDE69BC4U,
+  0x89B8FD09U,0x8D79E0BEU,0x803AC667U,0x84FBDBD0U,
+  0x9ABC8BD5U,0x9E7D9662U,0x933EB0BBU,0x97FFAD0CU,
+  0xAFB010B1U,0xAB710D06U,0xA6322BDFU,0xA2F33668U,
+  0xBCB4666DU,0xB8757BDAU,0xB5365D03U,0xB1F740B4U,
+  };
+unsigned int digital_update_crc32(unsigned int crc, const unsigned char *data, size_t len)
 {
-    static const unsigned int table[256] = {
-    0x00000000U,0x04C11DB7U,0x09823B6EU,0x0D4326D9U,
-    0x130476DCU,0x17C56B6BU,0x1A864DB2U,0x1E475005U,
-    0x2608EDB8U,0x22C9F00FU,0x2F8AD6D6U,0x2B4BCB61U,
-    0x350C9B64U,0x31CD86D3U,0x3C8EA00AU,0x384FBDBDU,
-    0x4C11DB70U,0x48D0C6C7U,0x4593E01EU,0x4152FDA9U,
-    0x5F15ADACU,0x5BD4B01BU,0x569796C2U,0x52568B75U,
-    0x6A1936C8U,0x6ED82B7FU,0x639B0DA6U,0x675A1011U,
-    0x791D4014U,0x7DDC5DA3U,0x709F7B7AU,0x745E66CDU,
-    0x9823B6E0U,0x9CE2AB57U,0x91A18D8EU,0x95609039U,
-    0x8B27C03CU,0x8FE6DD8BU,0x82A5FB52U,0x8664E6E5U,
-    0xBE2B5B58U,0xBAEA46EFU,0xB7A96036U,0xB3687D81U,
-    0xAD2F2D84U,0xA9EE3033U,0xA4AD16EAU,0xA06C0B5DU,
-    0xD4326D90U,0xD0F37027U,0xDDB056FEU,0xD9714B49U,
-    0xC7361B4CU,0xC3F706FBU,0xCEB42022U,0xCA753D95U,
-    0xF23A8028U,0xF6FB9D9FU,0xFBB8BB46U,0xFF79A6F1U,
-    0xE13EF6F4U,0xE5FFEB43U,0xE8BCCD9AU,0xEC7DD02DU,
-    0x34867077U,0x30476DC0U,0x3D044B19U,0x39C556AEU,
-    0x278206ABU,0x23431B1CU,0x2E003DC5U,0x2AC12072U,
-    0x128E9DCFU,0x164F8078U,0x1B0CA6A1U,0x1FCDBB16U,
-    0x018AEB13U,0x054BF6A4U,0x0808D07DU,0x0CC9CDCAU,
-    0x7897AB07U,0x7C56B6B0U,0x71159069U,0x75D48DDEU,
-    0x6B93DDDBU,0x6F52C06CU,0x6211E6B5U,0x66D0FB02U,
-    0x5E9F46BFU,0x5A5E5B08U,0x571D7DD1U,0x53DC6066U,
-    0x4D9B3063U,0x495A2DD4U,0x44190B0DU,0x40D816BAU,
-    0xACA5C697U,0xA864DB20U,0xA527FDF9U,0xA1E6E04EU,
-    0xBFA1B04BU,0xBB60ADFCU,0xB6238B25U,0xB2E29692U,
-    0x8AAD2B2FU,0x8E6C3698U,0x832F1041U,0x87EE0DF6U,
-    0x99A95DF3U,0x9D684044U,0x902B669DU,0x94EA7B2AU,
-    0xE0B41DE7U,0xE4750050U,0xE9362689U,0xEDF73B3EU,
-    0xF3B06B3BU,0xF771768CU,0xFA325055U,0xFEF34DE2U,
-    0xC6BCF05FU,0xC27DEDE8U,0xCF3ECB31U,0xCBFFD686U,
-    0xD5B88683U,0xD1799B34U,0xDC3ABDEDU,0xD8FBA05AU,
-    0x690CE0EEU,0x6DCDFD59U,0x608EDB80U,0x644FC637U,
-    0x7A089632U,0x7EC98B85U,0x738AAD5CU,0x774BB0EBU,
-    0x4F040D56U,0x4BC510E1U,0x46863638U,0x42472B8FU,
-    0x5C007B8AU,0x58C1663DU,0x558240E4U,0x51435D53U,
-    0x251D3B9EU,0x21DC2629U,0x2C9F00F0U,0x285E1D47U,
-    0x36194D42U,0x32D850F5U,0x3F9B762CU,0x3B5A6B9BU,
-    0x0315D626U,0x07D4CB91U,0x0A97ED48U,0x0E56F0FFU,
-    0x1011A0FAU,0x14D0BD4DU,0x19939B94U,0x1D528623U,
-    0xF12F560EU,0xF5EE4BB9U,0xF8AD6D60U,0xFC6C70D7U,
-    0xE22B20D2U,0xE6EA3D65U,0xEBA91BBCU,0xEF68060BU,
-    0xD727BBB6U,0xD3E6A601U,0xDEA580D8U,0xDA649D6FU,
-    0xC423CD6AU,0xC0E2D0DDU,0xCDA1F604U,0xC960EBB3U,
-    0xBD3E8D7EU,0xB9FF90C9U,0xB4BCB610U,0xB07DABA7U,
-    0xAE3AFBA2U,0xAAFBE615U,0xA7B8C0CCU,0xA379DD7BU,
-    0x9B3660C6U,0x9FF77D71U,0x92B45BA8U,0x9675461FU,
-    0x8832161AU,0x8CF30BADU,0x81B02D74U,0x857130C3U,
-    0x5D8A9099U,0x594B8D2EU,0x5408ABF7U,0x50C9B640U,
-    0x4E8EE645U,0x4A4FFBF2U,0x470CDD2BU,0x43CDC09CU,
-    0x7B827D21U,0x7F436096U,0x7200464FU,0x76C15BF8U,
-    0x68860BFDU,0x6C47164AU,0x61043093U,0x65C52D24U,
-    0x119B4BE9U,0x155A565EU,0x18197087U,0x1CD86D30U,
-    0x029F3D35U,0x065E2082U,0x0B1D065BU,0x0FDC1BECU,
-    0x3793A651U,0x3352BBE6U,0x3E119D3FU,0x3AD08088U,
-    0x2497D08DU,0x2056CD3AU,0x2D15EBE3U,0x29D4F654U,
-    0xC5A92679U,0xC1683BCEU,0xCC2B1D17U,0xC8EA00A0U,
-    0xD6AD50A5U,0xD26C4D12U,0xDF2F6BCBU,0xDBEE767CU,
-    0xE3A1CBC1U,0xE760D676U,0xEA23F0AFU,0xEEE2ED18U,
-    0xF0A5BD1DU,0xF464A0AAU,0xF9278673U,0xFDE69BC4U,
-    0x89B8FD09U,0x8D79E0BEU,0x803AC667U,0x84FBDBD0U,
-    0x9ABC8BD5U,0x9E7D9662U,0x933EB0BBU,0x97FFAD0CU,
-    0xAFB010B1U,0xAB710D06U,0xA6322BDFU,0xA2F33668U,
-    0xBCB4666DU,0xB8757BDAU,0xB5365D03U,0xB1F740B4U,
-    };
-  
-    while (len > 0)
-    {
-      crc = table[*data ^ ((crc >> 24) & 0xff)] ^ (crc << 8);
-      data++;
-      len--;
-    }
-    return crc;
+  while (len > 0)
+  {
+    crc = CRC32Table[*data ^ ((crc >> 24) & 0xff)] ^ (crc << 8);
+    data++;
+    len--;
+  }
+  return crc;
 }
 
 unsigned int digital_crc32(uint8_t *buf, size_t len)
@@ -528,7 +526,7 @@ char *GetBinStr(uint32_t val, char *ResBuf)
 
 /* ------------------------- END UTILITY FUNCTIONS ----------------- */
 
-#define SALT_SIZE 8 // 
+#define SALT_SIZE 8 // LEAVE AS IT IS
 #define MAX_NUM_JUMPS 64
 #define FALSE (0U)
 #define TRUE (!(FALSE))
@@ -578,7 +576,7 @@ int xorGetKey(uint8_t NumJumps, uint32_t BodyLen, uint8_t *KeyBuf)
   GetRandomNumbers(SALT_SIZE + BodyLen, KeyBuf + SP_SALT_DATA); // Fill 4 bytes salt data with random numbers
   return 0;
 }
-#define xorComputeKeyCheckSum(K) digital_crc32(K, SP_BODY + GetBodyLen(K))
+#define xorComputeKeyCheckSum(K) digital_crc32(GetBodyPtr(K), GetBodyLen(K))
 inline unsigned int CheckKeyIntegrity(uint8_t *K, size_t TotalKeyBufLen)
 {
   return ((SP_BODY + GetBodyLen(K)) == TotalKeyBufLen);
@@ -596,7 +594,9 @@ void xorAnalyzeKey(uint8_t *K)
   }
   printf("\n");
 }
-
+#if SALT_SIZE != 8
+#error SALT_SIZE is not supported
+#endif
 /* UNOPTIMIZED VERSION for BETTER UNDERSTANDING OF THE FUNCTIONING OF THE ALGORITHM. IT IS NOT USED IN REAL LIFE. USE OPTIMIZED VERSIONS!
  * Encrypts or decrypts InOutBuf 
  * KeyBuf is the raw key buffer
@@ -610,14 +610,15 @@ void xorAnalyzeKey(uint8_t *K)
  * and decrypts packet body with that salt value. This method prevents "known plaintext" attacks amongst others.
  */
 //define DISABLE_HAND_OPTIMIZED_FNCS
-uint64_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
-{ // Encrypts message and returns checksum of the PLAINTEXT
-  // SaltData is a 8 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
+uint32_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
+{ // Encrypts message and returns CRC32 of the PLAINTEXT!
+  // SaltData is a SALT_SIZE bytes uint8 array! 
   // Our aim is to create maximum random output from "any" input. It may an all 0 file or all random distribution. It doesn't matter
   // In order to do this, we have : 
   //   Salt: 8 bytes of random salt data
-  //   KeyCheckSum(or KC): 4 bytes of key body crc
+  //   KeyChecksum: 32 bit CRC key checksum
   //   Body: KeyBody bytes of key body
+  //   Checksum: Plaintext crc checksum
   //   M: Our moving pointer on the key body, which tells us where we are
   //   InOutBuf: Plaintext(or ciphertext for decryption)
   // We must use those variables in order to:
@@ -627,463 +628,418 @@ uint64_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOu
   //   Our first number to be XORed with the first plaintext byte completely depends on the random salt value
   //   Our starting point on the key body completely depends on the random salt value
   //   All subsequent ciphertext outputs completely depend on the starting values: Even attacker intercepts the ciphertext and plaintext,
-  //       the data gathered will not be useful for subsequent encryptions. Because, they will use different salt data.
+  //       the data gathered will not be useful to deciphher subsequent encryptions. Because, they will use different salt data.
   //   To hide our key body elements
-  //     We XOR at least two body elements(jumps) with each others.
-  //     We change 2 pseudo random bits of two random positions of this XOR result according to our salt data
-  //     We change 1 pseudo random bit at a pseudo random position of this XOR result according to our jump position; 
+  //     We XOR at least two body elements(jumps) with each other.
+  //     We use a third dynamic variable initially set to Key CRC and dynamically updated according to plaintext checksum
+  //     We update key body elements according to Salt values
+  //     We update salt data according to key body elements
   //     Our jump start point and steps are hidden
-  //     We update our key body according the last XOR value; but to add a pseudo randomness and to ensure to follow a different path, 
-  //        we add 1 bit of pseudo randomness according to key body crc which is not used for anything else in the function
-  //        So, for every byte encrypted, one key body element(at an unknown position to attacker) is set to a different value
-  //     We use the previous XOR value obtained to XOR with the next XOR value(chaining)
-  //  The brute force attack complexity to break this algorithm is: 2^64 * 2^(KeyBodyLen*8) or 256^PlainTextLength whichever is cheaper
+  //     We use the previous XOR values obtained to XOR with the next XOR values(chaining)
   register uint32_t Salt1,Salt2;
+  register size_t t = InOutDataLen;
   register uint8_t tt;
-  register size_t t;
-  register uint32_t XORVal; 
   register uint32_t M; // This is our moving pointer on key body bytes
-  register uint32_t KC=KeyCheckSum; 
-  register uint64_t Checksum=0;
+  register uint32_t Checksum=0xffffffff, V = KeyCheckSum;
   register uint32_t BodyMask = GetBodyLen(K)-1; // +1 because we will use this "Mersenne number" for & operation instead of modulus operation
-  register uint8_t *p = InOutBuf, *bp;
+  register uint8_t *p;
   uint8_t Body[MAX_BODY_SIZE];
   
   memcpy(Body,K+SP_BODY, BodyMask+1);
-  
+  p = InOutBuf;
   // We compute our start values as much randomly as possible upon salt(or nonce or iv) value which is transmitted with every data to be encrypted or decrypted
-  XORVal = ((( (Salt[0] ^ Salt[1]) ^ (KC&0xff)) ^ ( (Salt[2] ^ Salt[3]) ^ ((KC&0xff00)>>8) )) ^ (( (Salt[4] ^ Salt[7]) ^ ((KC&0xff0000)>>16) ) ^ ( (Salt[5] ^ Salt[6]) ^ ((KC&0xff000000)>>24) ))) & 0xff;
-  
-  Salt1 = (uint32_t)(Salt[0]) & ((uint32_t)(Salt[1]) << 8) & ((uint32_t)(Salt[2]) << 16) & ((uint32_t)(Salt[3]) << 24);
-  Salt2 = (uint32_t)(Salt[4]) & ((uint32_t)(Salt[5]) << 8) & ((uint32_t)(Salt[6]) << 16) & ((uint32_t)(Salt[7]) << 24);
-  
+  Salt1 = ((uint32_t)(Salt[0]) & ((uint32_t)(Salt[1]) << 8) & ((uint32_t)(Salt[2]) << 16) & ((uint32_t)(Salt[3]) << 24));
+  Salt2 = ((uint32_t)(Salt[4]) & ((uint32_t)(Salt[5]) << 8) & ((uint32_t)(Salt[6]) << 16) & ((uint32_t)(Salt[7]) << 24));
   // Our initial jump position in the key body depends on a random value
-  M = (Salt2 ^ KC) & BodyMask;
+  M = ((((uint32_t)Salt[3]) * ((uint32_t)Salt[7]))) & BodyMask;
   
-  for (t=0; t<InOutDataLen; t++)
+  while (t--)
   { 
-    XORVal &= 0xff;
-    bp = (Body + M);
-    Checksum += *p; 
-    *bp ^= (uint8_t)(XORVal) ^ (uint8_t)(1 << (KC&7));  // Add a pseudo-random bit based on key crc
-    ROL32_1(KC); 
-    *p ^= ((uint8_t)(XORVal));
-
-    // First jump
-    XORVal ^=  *bp; 
-    XORVal ^= (uint8_t)((uint8_t)1 << (uint8_t)(Salt1&7)); ROL32_1(Salt2); // Add a pseudo-random bit based on first part of the Salt
-    M = (M ^ XORVal) & BodyMask; 
-    XORVal ^= (uint8_t)((uint8_t)1 << (uint8_t)(Salt2&7)); ROL32_1(Salt1); // Add another pseudo-random bit based on second part of the Salt
+    // First jump point
+    Salt1 ^= (uint32_t)(Body[M]);
+    Body[M] = (uint8_t)(Salt2); 
+    M = (M^Salt2) & BodyMask; 
+    ROL32_1(Salt2);
     
-    // Second jump
-    bp = (Body + M);
-    XORVal ^= *bp; 
-    M = (M ^ Salt1) & BodyMask;
-    XORVal ^= (1 << (M&7)); // Add another pseudo-random bit based on our position on key body
+    // Second jump point
+    Salt2 ^= (uint32_t)(Body[M]);
+    Body[M] = (uint8_t)(Salt1); 
+    M = (M^V) & BodyMask; 
+    ROR32_1(Salt1);
     
-    for (tt=2; tt < GetNumJumps(K); tt++)
+    // Following jumps
+    for (tt=2; tt<GetNumJumps(K); tt++)
     {
-      // All following jumps are based on body values
-      bp = (Body + M); 
-      XORVal ^= *bp; 
-      M = (M ^ XORVal) & BodyMask;;  
+      if (tt&1)
+      {
+        Salt2 ^= (uint32_t)(Body[M]);
+        Body[M] = (uint8_t)(Salt1); 
+        M = (M^Salt1) & BodyMask; 
+        ROR32_1(Salt1);
+      }
+      else {
+        Salt1 ^= (uint32_t)(Body[M]);
+        Body[M] = (uint8_t)(Salt2); 
+        M = (M^Salt2) & BodyMask; 
+        ROL32_1(Salt2);
+      }
     }
+    Checksum = CRC32Table[*p ^ ((Checksum >> 24) & 0xff)] ^ (Checksum << 8); 
+    *p ^= ((uint8_t)(Salt1^Salt2^V));
+    V ^= Checksum;
+    ROL32_1(V);
     p++;
   }
-  return Checksum;
+  return Checksum ^ 0xffffffff;
 } 
 
-uint64_t xorDecrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
-{ // Decrypts message and returns checksum of the PLAINTEXT
-  // SaltData is a 8 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
+uint32_t xorDecrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
+{ // Decrypts message and returns CRC32 of the PLAINTEXT
+  // SaltData is a 8 bytes uint8 array! 
   register uint32_t Salt1,Salt2;
+  register size_t t = InOutDataLen;
   register uint8_t tt;
-  register size_t t;
-  register uint32_t XORVal; 
   register uint32_t M; // This is our moving pointer on key body bytes
-  register uint32_t KC=KeyCheckSum; 
-  register uint64_t Checksum=0;
+  register uint32_t Checksum=0xffffffff, V = KeyCheckSum;
   register uint32_t BodyMask = GetBodyLen(K)-1; // +1 because we will use this "Mersenne number" for & operation instead of modulus operation
-  register uint8_t *p = InOutBuf, *bp;
+  register uint8_t *p;
   uint8_t Body[MAX_BODY_SIZE];
   
   memcpy(Body,K+SP_BODY, BodyMask+1);
-  
+  p = InOutBuf;
   // We compute our start values as much randomly as possible upon salt(or nonce or iv) value which is transmitted with every data to be encrypted or decrypted
-  XORVal = ((( (Salt[0] ^ Salt[1]) ^ (KC&0xff)) ^ ( (Salt[2] ^ Salt[3]) ^ ((KC&0xff00)>>8) )) ^ (( (Salt[4] ^ Salt[7]) ^ ((KC&0xff0000)>>16) ) ^ ( (Salt[5] ^ Salt[6]) ^ ((KC&0xff000000)>>24) ))) & 0xff;
-  Salt1 = (uint32_t)(Salt[0]) & ((uint32_t)(Salt[1]) << 8) & ((uint32_t)(Salt[2]) << 16) & ((uint32_t)(Salt[3]) << 24);
-  Salt2 = (uint32_t)(Salt[4]) & ((uint32_t)(Salt[5]) << 8) & ((uint32_t)(Salt[6]) << 16) & ((uint32_t)(Salt[7]) << 24);
-  
+  Salt1 = ((uint32_t)(Salt[0]) & ((uint32_t)(Salt[1]) << 8) & ((uint32_t)(Salt[2]) << 16) & ((uint32_t)(Salt[3]) << 24));
+  Salt2 = ((uint32_t)(Salt[4]) & ((uint32_t)(Salt[5]) << 8) & ((uint32_t)(Salt[6]) << 16) & ((uint32_t)(Salt[7]) << 24));
   // Our initial jump position in the key body depends on a random value
-  M = (Salt2 ^ KC) & BodyMask;
+  M = ((((uint32_t)Salt[3]) * ((uint32_t)Salt[7]))) & BodyMask;
   
-  for (t=0; t<InOutDataLen; t++)
+  while (t--)
   { 
-    bp = (Body + M);
-    XORVal &= 0xff;
-    *p ^= ((uint8_t)(XORVal));
-    Checksum += *p; 
-    *bp ^= (uint8_t)(XORVal) ^ (uint8_t)(1 << (KC&7));  // Add a pseudo-random bit based on key crc
-    ROL32_1(KC); 
+    //V ^= ((uint32_t)1 << (uint32_t)(M&(uint32_t)31));
+    // First jump point
+    Salt1 ^= (uint32_t)(Body[M]);
+    Body[M] = (uint8_t)(Salt2); 
+    M = (M^Salt2) & BodyMask; 
+    ROL32_1(Salt2);
     
-    // First jump
-    XORVal ^=  *bp; 
-    XORVal ^= (uint8_t)((uint8_t)1 << (uint8_t)(Salt1&7)); ROL32_1(Salt2); // Add a pseudo-random bit based on first part of the Salt
-    M = (M ^ XORVal) & BodyMask; 
-    XORVal ^= (uint8_t)((uint8_t)1 << (uint8_t)(Salt2&7)); ROL32_1(Salt1); // Add another pseudo-random bit based on second part of the Salt
+    // Second jump point
+    Salt2 ^= (uint32_t)(Body[M]);
+    Body[M] = (uint8_t)(Salt1); 
+    M = (M^V) & BodyMask; 
+    ROR32_1(Salt1);
     
-    // Second jump
-    bp = (Body + M);
-    XORVal ^= *bp; 
-    M = (M ^ Salt1) & BodyMask;
-    XORVal ^= (1 << (M&7)); // Add another pseudo-random bit based on our position on key body
-    
-    for (tt=2; tt < GetNumJumps(K); tt++)
+    // Following jumps
+    for (tt=2; tt<GetNumJumps(K); tt++)
     {
-      // All following jumps are based on body values
-      bp = (Body + M); 
-      XORVal ^= *bp; 
-      M = (M ^ XORVal) & BodyMask;;  
+      if (tt&1)
+      {
+        Salt2 ^= (uint32_t)(Body[M]);
+        Body[M] = (uint8_t)(Salt1); 
+        M = (M^Salt1) & BodyMask; 
+        ROR32_1(Salt1);
+      }
+      else {
+        Salt1 ^= (uint32_t)(Body[M]);
+        Body[M] = (uint8_t)(Salt2); 
+        M = (M^Salt2) & BodyMask; 
+        ROL32_1(Salt2);
+      }
     }
+    *p ^= ((uint8_t)(Salt1^Salt2^V));
+    Checksum = CRC32Table[*p ^ ((Checksum >> 24) & 0xff)] ^ (Checksum << 8); 
+    V ^= Checksum;
+    ROL32_1(V);
     p++;
   }
-  return Checksum;
+  return Checksum ^ 0xffffffff;
 } 
 
-uint64_t xorEncryptHOP2(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
-{ // Encrypts message and returns checksum of the PLAINTEXT
-  // SaltData is a 8 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
-#if defined(DISABLE_HAND_OPTIMIZED_FNCS)
-  return xorEncrypt(K,Salt,KeyCheckSum,InOutDataLen,InOutBuf);
-#endif
+#ifdef DISABLE_HAND_OPTIMIZED_FNCS
+#define xorEncryptHOP2 xorEncrypt
+#define xorDecryptHOP2 xorDecrypt
+#define xorEncryptHOP3 xorEncrypt
+#define xorEncryptHOP4 xorEncrypt
+#define xorDecryptHOP3 xorDecrypt
+#define xorDecryptHOP4 xorDecrypt
+#else
+uint32_t xorEncryptHOP2(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
+{
   register uint32_t Salt1,Salt2;
-  register size_t t;
-  register uint32_t XORVal; 
+  register size_t t = InOutDataLen;
   register uint32_t M; // This is our moving pointer on key body bytes
-  register uint32_t KC=KeyCheckSum; 
-  register uint64_t Checksum=0;
+  register uint32_t Checksum=0xffffffff, V = KeyCheckSum;
   register uint32_t BodyMask = GetBodyLen(K)-1; // +1 because we will use this "Mersenne number" for & operation instead of modulus operation
-  register uint8_t *p = InOutBuf, *bp;
+  register uint8_t *p;
   uint8_t Body[MAX_BODY_SIZE];
   
   memcpy(Body,K+SP_BODY, BodyMask+1);
-  
+  p = InOutBuf;
   // We compute our start values as much randomly as possible upon salt(or nonce or iv) value which is transmitted with every data to be encrypted or decrypted
-  XORVal = ((( (Salt[0] ^ Salt[1]) ^ (KC&0xff)) ^ ( (Salt[2] ^ Salt[3]) ^ ((KC&0xff00)>>8) )) ^ (( (Salt[4] ^ Salt[7]) ^ ((KC&0xff0000)>>16) ) ^ ( (Salt[5] ^ Salt[6]) ^ ((KC&0xff000000)>>24) ))) & 0xff;
-  Salt1 = (uint32_t)(Salt[0]) & ((uint32_t)(Salt[1]) << 8) & ((uint32_t)(Salt[2]) << 16) & ((uint32_t)(Salt[3]) << 24);
-  Salt2 = (uint32_t)(Salt[4]) & ((uint32_t)(Salt[5]) << 8) & ((uint32_t)(Salt[6]) << 16) & ((uint32_t)(Salt[7]) << 24);
-  
+  Salt1 = ((uint32_t)(Salt[0]) & ((uint32_t)(Salt[1]) << 8) & ((uint32_t)(Salt[2]) << 16) & ((uint32_t)(Salt[3]) << 24));
+  Salt2 = ((uint32_t)(Salt[4]) & ((uint32_t)(Salt[5]) << 8) & ((uint32_t)(Salt[6]) << 16) & ((uint32_t)(Salt[7]) << 24));
   // Our initial jump position in the key body depends on a random value
-  M = (Salt2 ^ KC) & BodyMask;
+  M = ((((uint32_t)Salt[3]) * ((uint32_t)Salt[7]))) & BodyMask;
   
-  for (t=0; t<InOutDataLen; t++)
+  while (t--)
   { 
-    XORVal &= 0xff;
-    bp = (Body + M);
-    Checksum += *p; 
-    *bp ^= (uint8_t)(XORVal) ^ (uint8_t)(1 << (KC&7));  // Add a pseudo-random bit based on key crc
-    ROL32_1(KC); 
-    *p ^= ((uint8_t)(XORVal));
-
-    // First jump
-    XORVal ^=  *bp; 
-    XORVal ^= (uint8_t)((uint8_t)1 << (uint8_t)(Salt1&7)); ROL32_1(Salt2); // Add a pseudo-random bit based on first part of the Salt
-    M = (M ^ XORVal) & BodyMask; 
-    XORVal ^= (uint8_t)((uint8_t)1 << (uint8_t)(Salt2&7)); ROL32_1(Salt1); // Add another pseudo-random bit based on second part of the Salt
+    // First jump point
+    Salt1 ^= (uint32_t)(Body[M]);
+    Body[M] = (uint8_t)(Salt2); 
+    M = (M^Salt2) & BodyMask; 
+    ROL32_1(Salt2);
     
-    // Second jump
-    bp = (Body + M);
-    XORVal ^= *bp; 
-    M = (M ^ Salt1) & BodyMask;
-    XORVal ^= (1 << (M&7)); // Add another pseudo-random bit based on our position on key body
+    // Second jump point
+    Salt2 ^= (uint32_t)(Body[M]);
+    Body[M] = (uint8_t)(Salt1); 
+    M = (M^V) & BodyMask; 
+    ROR32_1(Salt1);
     
+    Checksum = CRC32Table[*p ^ ((Checksum >> 24) & 0xff)] ^ (Checksum << 8); 
+    *p ^= ((uint8_t)(Salt1^Salt2^V));
+    V ^= Checksum;
+    ROL32_1(V);
     p++;
   }
-  return Checksum;
+  return Checksum ^ 0xffffffff;
 } 
 
-uint64_t xorDecryptHOP2(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
-{ // Decrypts message and returns checksum of the PLAINTEXT
-  // SaltData is a 8 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
-#if defined(DISABLE_HAND_OPTIMIZED_FNCS)
-  return xorDecrypt(K,Salt,KeyCheckSum,InOutDataLen,InOutBuf);
-#endif
+uint32_t xorDecryptHOP2(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
+{
   register uint32_t Salt1,Salt2;
-  register size_t t;
-  register uint32_t XORVal; 
+  register size_t t = InOutDataLen;
   register uint32_t M; // This is our moving pointer on key body bytes
-  register uint32_t KC=KeyCheckSum; 
-  register uint64_t Checksum=0;
+  register uint32_t Checksum=0xffffffff, V = KeyCheckSum;
   register uint32_t BodyMask = GetBodyLen(K)-1; // +1 because we will use this "Mersenne number" for & operation instead of modulus operation
-  register uint8_t *p = InOutBuf, *bp;
+  register uint8_t *p;
   uint8_t Body[MAX_BODY_SIZE];
   
   memcpy(Body,K+SP_BODY, BodyMask+1);
-  
+  p = InOutBuf;
   // We compute our start values as much randomly as possible upon salt(or nonce or iv) value which is transmitted with every data to be encrypted or decrypted
-  XORVal = ((( (Salt[0] ^ Salt[1]) ^ (KC&0xff)) ^ ( (Salt[2] ^ Salt[3]) ^ ((KC&0xff00)>>8) )) ^ (( (Salt[4] ^ Salt[7]) ^ ((KC&0xff0000)>>16) ) ^ ( (Salt[5] ^ Salt[6]) ^ ((KC&0xff000000)>>24) ))) & 0xff;
-  Salt1 = (uint32_t)(Salt[0]) & ((uint32_t)(Salt[1]) << 8) & ((uint32_t)(Salt[2]) << 16) & ((uint32_t)(Salt[3]) << 24);
-  Salt2 = (uint32_t)(Salt[4]) & ((uint32_t)(Salt[5]) << 8) & ((uint32_t)(Salt[6]) << 16) & ((uint32_t)(Salt[7]) << 24);
-  
+  Salt1 = ((uint32_t)(Salt[0]) & ((uint32_t)(Salt[1]) << 8) & ((uint32_t)(Salt[2]) << 16) & ((uint32_t)(Salt[3]) << 24));
+  Salt2 = ((uint32_t)(Salt[4]) & ((uint32_t)(Salt[5]) << 8) & ((uint32_t)(Salt[6]) << 16) & ((uint32_t)(Salt[7]) << 24));
   // Our initial jump position in the key body depends on a random value
-  M = (Salt2 ^ KC) & BodyMask;
+  M = ((((uint32_t)Salt[3]) * ((uint32_t)Salt[7]))) & BodyMask;
   
-  for (t=0; t<InOutDataLen; t++)
+  while (t--)
   { 
-    bp = (Body + M);
-    XORVal &= 0xff;
-    *p ^= ((uint8_t)(XORVal));
-    Checksum += *p; 
-    *bp ^= (uint8_t)(XORVal) ^ (uint8_t)(1 << (KC&7));  // Add a pseudo-random bit based on key crc
-    ROL32_1(KC); 
+    // First jump point
+    Salt1 ^= (uint32_t)(Body[M]);
+    Body[M] = (uint8_t)(Salt2); 
+    M = (M^Salt2) & BodyMask; 
+    ROL32_1(Salt2);
     
-    // First jump
-    XORVal ^=  *bp; 
-    XORVal ^= (uint8_t)((uint8_t)1 << (uint8_t)(Salt1&7)); ROL32_1(Salt2); // Add a pseudo-random bit based on first part of the Salt
-    M = (M ^ XORVal) & BodyMask; 
-    XORVal ^= (uint8_t)((uint8_t)1 << (uint8_t)(Salt2&7)); ROL32_1(Salt1); // Add another pseudo-random bit based on second part of the Salt
+    // Second jump point
+    Salt2 ^= (uint32_t)(Body[M]);
+    Body[M] = (uint8_t)(Salt1); 
+    M = (M^V) & BodyMask; 
+    ROR32_1(Salt1);
     
-    // Second jump
-    bp = (Body + M);
-    XORVal ^= *bp; 
-    M = (M ^ Salt1) & BodyMask;
-    XORVal ^= (1 << (M&7)); // Add another pseudo-random bit based on our position on key body
-  
+    *p ^= ((uint8_t)(Salt1^Salt2^V));
+    Checksum = CRC32Table[*p ^ ((Checksum >> 24) & 0xff)] ^ (Checksum << 8); 
+    V ^= Checksum;
+    ROL32_1(V);
     p++;
   }
-  return Checksum;
+  return Checksum ^ 0xffffffff;
 } 
 
-uint64_t xorEncryptHOP3(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
-{ // Encrypts message and returns checksum of the PLAINTEXT
-  // SaltData is a 8 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
-#if defined(DISABLE_HAND_OPTIMIZED_FNCS)
-  return xorEncrypt(K,Salt,KeyCheckSum,InOutDataLen,InOutBuf);
-#endif
+uint32_t xorEncryptHOP3(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
+{
   register uint32_t Salt1,Salt2;
-  register size_t t;
-  register uint32_t XORVal; 
+  register size_t t = InOutDataLen;
   register uint32_t M; // This is our moving pointer on key body bytes
-  register uint32_t KC=KeyCheckSum; 
-  register uint64_t Checksum=0;
+  register uint32_t Checksum=0xffffffff, V = KeyCheckSum;
   register uint32_t BodyMask = GetBodyLen(K)-1; // +1 because we will use this "Mersenne number" for & operation instead of modulus operation
-  register uint8_t *p = InOutBuf, *bp;
+  register uint8_t *p;
   uint8_t Body[MAX_BODY_SIZE];
   
   memcpy(Body,K+SP_BODY, BodyMask+1);
-  
+  p = InOutBuf;
   // We compute our start values as much randomly as possible upon salt(or nonce or iv) value which is transmitted with every data to be encrypted or decrypted
-  XORVal = ((( (Salt[0] ^ Salt[1]) ^ (KC&0xff)) ^ ( (Salt[2] ^ Salt[3]) ^ ((KC&0xff00)>>8) )) ^ (( (Salt[4] ^ Salt[7]) ^ ((KC&0xff0000)>>16) ) ^ ( (Salt[5] ^ Salt[6]) ^ ((KC&0xff000000)>>24) ))) & 0xff;
-  Salt1 = (uint32_t)(Salt[0]) & ((uint32_t)(Salt[1]) << 8) & ((uint32_t)(Salt[2]) << 16) & ((uint32_t)(Salt[3]) << 24);
-  Salt2 = (uint32_t)(Salt[4]) & ((uint32_t)(Salt[5]) << 8) & ((uint32_t)(Salt[6]) << 16) & ((uint32_t)(Salt[7]) << 24);
-  
+  Salt1 = ((uint32_t)(Salt[0]) & ((uint32_t)(Salt[1]) << 8) & ((uint32_t)(Salt[2]) << 16) & ((uint32_t)(Salt[3]) << 24));
+  Salt2 = ((uint32_t)(Salt[4]) & ((uint32_t)(Salt[5]) << 8) & ((uint32_t)(Salt[6]) << 16) & ((uint32_t)(Salt[7]) << 24));
   // Our initial jump position in the key body depends on a random value
-  M = (Salt2 ^ KC) & BodyMask;
+  M = ((((uint32_t)Salt[3]) * ((uint32_t)Salt[7]))) & BodyMask;
   
-  for (t=0; t<InOutDataLen; t++)
+  while (t--)
   { 
-    XORVal &= 0xff;
-    bp = (Body + M);
-    Checksum += *p; 
-    *bp ^= (uint8_t)(XORVal) ^ (uint8_t)(1 << (KC&7));  // Add a pseudo-random bit based on key crc
-    ROL32_1(KC); 
-    *p ^= ((uint8_t)(XORVal));
-
-    // First jump
-    XORVal ^=  *bp; 
-    XORVal ^= (uint8_t)((uint8_t)1 << (uint8_t)(Salt1&7)); ROL32_1(Salt2); // Add a pseudo-random bit based on first part of the Salt
-    M = (M ^ XORVal) & BodyMask; 
-    XORVal ^= (uint8_t)((uint8_t)1 << (uint8_t)(Salt2&7)); ROL32_1(Salt1); // Add another pseudo-random bit based on second part of the Salt
+    // First jump point
+    Salt1 ^= (uint32_t)(Body[M]);
+    Body[M] = (uint8_t)(Salt2); 
+    M = (M^Salt2) & BodyMask; 
+    ROL32_1(Salt2);
     
-    // Second jump
-    bp = (Body + M);
-    XORVal ^= *bp; 
-    M = (M ^ Salt1) & BodyMask;
-    XORVal ^= (1 << (M&7)); // Add another pseudo-random bit based on our position on key body
+    // Second jump point
+    Salt2 ^= (uint32_t)(Body[M]);
+    Body[M] = (uint8_t)(Salt1); 
+    M = (M^V) & BodyMask; 
+    ROR32_1(Salt1);
     
-    // All following jumps are based on body values
-    bp = (Body + M); 
-    XORVal ^= *bp; 
-    M = (M ^ XORVal) & BodyMask;;  
+    Salt1 ^= (uint32_t)(Body[M]);
+    Body[M] = (uint8_t)(Salt2); 
+    M = (M^Salt2) & BodyMask; 
+    ROL32_1(Salt2);
+    
+    Checksum = CRC32Table[*p ^ ((Checksum >> 24) & 0xff)] ^ (Checksum << 8); 
+    *p ^= ((uint8_t)(Salt1^Salt2^V));
+    V ^= Checksum;
+    ROL32_1(V);
     p++;
   }
-  return Checksum;
+  return Checksum ^ 0xffffffff;
 } 
 
-uint64_t xorDecryptHOP3(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
-{ // Decrypts message and returns checksum of the PLAINTEXT
-  // SaltData is a 8 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
-#if defined(DISABLE_HAND_OPTIMIZED_FNCS)
-  return xorDecrypt(K,Salt,KeyCheckSum,InOutDataLen,InOutBuf);
-#endif
+uint32_t xorDecryptHOP3(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
+{
   register uint32_t Salt1,Salt2;
-  register size_t t;
-  register uint32_t XORVal; 
+  register size_t t = InOutDataLen;
   register uint32_t M; // This is our moving pointer on key body bytes
-  register uint32_t KC=KeyCheckSum; 
-  register uint64_t Checksum=0;
+  register uint32_t Checksum=0xffffffff, V = KeyCheckSum;
   register uint32_t BodyMask = GetBodyLen(K)-1; // +1 because we will use this "Mersenne number" for & operation instead of modulus operation
-  register uint8_t *p = InOutBuf, *bp;
+  register uint8_t *p;
   uint8_t Body[MAX_BODY_SIZE];
   
   memcpy(Body,K+SP_BODY, BodyMask+1);
-  
+  p = InOutBuf;
   // We compute our start values as much randomly as possible upon salt(or nonce or iv) value which is transmitted with every data to be encrypted or decrypted
-  XORVal = ((( (Salt[0] ^ Salt[1]) ^ (KC&0xff)) ^ ( (Salt[2] ^ Salt[3]) ^ ((KC&0xff00)>>8) )) ^ (( (Salt[4] ^ Salt[7]) ^ ((KC&0xff0000)>>16) ) ^ ( (Salt[5] ^ Salt[6]) ^ ((KC&0xff000000)>>24) ))) & 0xff;
-  Salt1 = (uint32_t)(Salt[0]) & ((uint32_t)(Salt[1]) << 8) & ((uint32_t)(Salt[2]) << 16) & ((uint32_t)(Salt[3]) << 24);
-  Salt2 = (uint32_t)(Salt[4]) & ((uint32_t)(Salt[5]) << 8) & ((uint32_t)(Salt[6]) << 16) & ((uint32_t)(Salt[7]) << 24);
-  
+  Salt1 = ((uint32_t)(Salt[0]) & ((uint32_t)(Salt[1]) << 8) & ((uint32_t)(Salt[2]) << 16) & ((uint32_t)(Salt[3]) << 24));
+  Salt2 = ((uint32_t)(Salt[4]) & ((uint32_t)(Salt[5]) << 8) & ((uint32_t)(Salt[6]) << 16) & ((uint32_t)(Salt[7]) << 24));
   // Our initial jump position in the key body depends on a random value
-  M = (Salt2 ^ KC) & BodyMask;
+  M = ((((uint32_t)Salt[3]) * ((uint32_t)Salt[7]))) & BodyMask;
   
-  for (t=0; t<InOutDataLen; t++)
+  while (t--)
   { 
-    bp = (Body + M);
-    XORVal &= 0xff;
-    *p ^= ((uint8_t)(XORVal));
-    Checksum += *p; 
-    *bp ^= (uint8_t)(XORVal) ^ (uint8_t)(1 << (KC&7));  // Add a pseudo-random bit based on key crc
-    ROL32_1(KC); 
+    // First jump point
+    Salt1 ^= (uint32_t)(Body[M]);
+    Body[M] = (uint8_t)(Salt2); 
+    M = (M^Salt2) & BodyMask; 
+    ROL32_1(Salt2);
     
-    // First jump
-    XORVal ^=  *bp; 
-    XORVal ^= (uint8_t)((uint8_t)1 << (uint8_t)(Salt1&7)); ROL32_1(Salt2); // Add a pseudo-random bit based on first part of the Salt
-    M = (M ^ XORVal) & BodyMask; 
-    XORVal ^= (uint8_t)((uint8_t)1 << (uint8_t)(Salt2&7)); ROL32_1(Salt1); // Add another pseudo-random bit based on second part of the Salt
+    // Second jump point
+    Salt2 ^= (uint32_t)(Body[M]);
+    Body[M] = (uint8_t)(Salt1); 
+    M = (M^V) & BodyMask; 
+    ROR32_1(Salt1);
     
-    // Second jump
-    bp = (Body + M);
-    XORVal ^= *bp; 
-    M = (M ^ Salt1) & BodyMask;
-    XORVal ^= (1 << (M&7)); // Add another pseudo-random bit based on our position on key body
+    Salt1 ^= (uint32_t)(Body[M]);
+    Body[M] = (uint8_t)(Salt2); 
+    M = (M^Salt2) & BodyMask; 
+    ROL32_1(Salt2);
     
-    // All following jumps are based on body values
-    bp = (Body + M); 
-    XORVal ^= *bp; 
-    M = (M ^ XORVal) & BodyMask;;  
+    *p ^= ((uint8_t)(Salt1^Salt2^V));
+    Checksum = CRC32Table[*p ^ ((Checksum >> 24) & 0xff)] ^ (Checksum << 8); 
+    V ^= Checksum;
+    ROL32_1(V);
     p++;
   }
-  return Checksum;
+  return Checksum ^ 0xffffffff;
 } 
 
-uint64_t xorEncryptHOP4(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
-{ // Encrypts message and returns checksum of the PLAINTEXT
-  // SaltData is a 8 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
-#if defined(DISABLE_HAND_OPTIMIZED_FNCS)
-  return xorEncrypt(K,Salt,KeyCheckSum,InOutDataLen,InOutBuf);
-#endif
+uint32_t xorEncryptHOP4(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
+{
   register uint32_t Salt1,Salt2;
-  register size_t t;
-  register uint32_t XORVal; 
+  register size_t t = InOutDataLen;
   register uint32_t M; // This is our moving pointer on key body bytes
-  register uint32_t KC=KeyCheckSum; 
-  register uint64_t Checksum=0;
+  register uint32_t Checksum=0xffffffff, V = KeyCheckSum;
   register uint32_t BodyMask = GetBodyLen(K)-1; // +1 because we will use this "Mersenne number" for & operation instead of modulus operation
-  register uint8_t *p = InOutBuf, *bp;
+  register uint8_t *p;
   uint8_t Body[MAX_BODY_SIZE];
   
   memcpy(Body,K+SP_BODY, BodyMask+1);
-  
+  p = InOutBuf;
   // We compute our start values as much randomly as possible upon salt(or nonce or iv) value which is transmitted with every data to be encrypted or decrypted
-  XORVal = ((( (Salt[0] ^ Salt[1]) ^ (KC&0xff)) ^ ( (Salt[2] ^ Salt[3]) ^ ((KC&0xff00)>>8) )) ^ (( (Salt[4] ^ Salt[7]) ^ ((KC&0xff0000)>>16) ) ^ ( (Salt[5] ^ Salt[6]) ^ ((KC&0xff000000)>>24) ))) & 0xff;
-  Salt1 = (uint32_t)(Salt[0]) & ((uint32_t)(Salt[1]) << 8) & ((uint32_t)(Salt[2]) << 16) & ((uint32_t)(Salt[3]) << 24);
-  Salt2 = (uint32_t)(Salt[4]) & ((uint32_t)(Salt[5]) << 8) & ((uint32_t)(Salt[6]) << 16) & ((uint32_t)(Salt[7]) << 24);
-  
+  Salt1 = ((uint32_t)(Salt[0]) & ((uint32_t)(Salt[1]) << 8) & ((uint32_t)(Salt[2]) << 16) & ((uint32_t)(Salt[3]) << 24));
+  Salt2 = ((uint32_t)(Salt[4]) & ((uint32_t)(Salt[5]) << 8) & ((uint32_t)(Salt[6]) << 16) & ((uint32_t)(Salt[7]) << 24));
   // Our initial jump position in the key body depends on a random value
-  M = (Salt2 ^ KC) & BodyMask;
+  M = ((((uint32_t)Salt[3]) * ((uint32_t)Salt[7]))) & BodyMask;
   
-  for (t=0; t<InOutDataLen; t++)
+  while (t--)
   { 
-    XORVal &= 0xff;
-    bp = (Body + M);
-    Checksum += *p; 
-    *bp ^= (uint8_t)(XORVal) ^ (uint8_t)(1 << (KC&7));  // Add a pseudo-random bit based on key crc
-    ROL32_1(KC); 
-    *p ^= ((uint8_t)(XORVal));
-
-    // First jump
-    XORVal ^=  *bp; 
-    XORVal ^= (uint8_t)((uint8_t)1 << (uint8_t)(Salt1&7)); ROL32_1(Salt2); // Add a pseudo-random bit based on first part of the Salt
-    M = (M ^ XORVal) & BodyMask; 
-    XORVal ^= (uint8_t)((uint8_t)1 << (uint8_t)(Salt2&7)); ROL32_1(Salt1); // Add another pseudo-random bit based on second part of the Salt
+    // First jump point
+    Salt1 ^= (uint32_t)(Body[M]);
+    Body[M] = (uint8_t)(Salt2); 
+    M = (M^Salt2) & BodyMask; 
+    ROL32_1(Salt2);
     
-    // Second jump
-    bp = (Body + M);
-    XORVal ^= *bp; 
-    M = (M ^ Salt1) & BodyMask;
-    XORVal ^= (1 << (M&7)); // Add another pseudo-random bit based on our position on key body
+    // Second jump point
+    Salt2 ^= (uint32_t)(Body[M]);
+    Body[M] = (uint8_t)(Salt1); 
+    M = (M^V) & BodyMask; 
+    ROR32_1(Salt1);
     
-    // All following jumps are based on body values
-    bp = (Body + M); 
-    XORVal ^= *bp; 
-    M = (M ^ XORVal) & BodyMask;;  
-    bp = (Body + M); 
-    XORVal ^= *bp; 
-    M = (M ^ XORVal) & BodyMask;;  
+    // Following jumps
+    Salt1 ^= (uint32_t)(Body[M]);
+    Body[M] = (uint8_t)(Salt2); 
+    M = (M^Salt2) & BodyMask; 
+    ROL32_1(Salt2);
     
+    Salt2 ^= (uint32_t)(Body[M]);
+    Body[M] = (uint8_t)(Salt1); 
+    M = (M^Salt1) & BodyMask; 
+    ROR32_1(Salt1);
+    
+    Checksum = CRC32Table[*p ^ ((Checksum >> 24) & 0xff)] ^ (Checksum << 8); 
+    *p ^= ((uint8_t)(Salt1^Salt2^V));
+    V ^= Checksum;
+    ROL32_1(V);
     p++;
   }
-  return Checksum;
+  return Checksum ^ 0xffffffff;
 } 
-uint64_t xorDecryptHOP4(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
-{ // Decrypts message and returns checksum of the PLAINTEXT
-  // SaltData is a 8 bytes uint8 array! IT IS NOT READ ONLY! IT WILL BE MANIPULATED BY THE FUNCTION!
-#if defined(DISABLE_HAND_OPTIMIZED_FNCS)
-  return xorDecrypt(K,Salt,KeyCheckSum,InOutDataLen,InOutBuf);
-#endif
+
+uint32_t xorDecryptHOP4(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
+{
   register uint32_t Salt1,Salt2;
-  register size_t t;
-  register uint32_t XORVal; 
+  register size_t t = InOutDataLen;
   register uint32_t M; // This is our moving pointer on key body bytes
-  register uint32_t KC=KeyCheckSum; 
-  register uint64_t Checksum=0;
+  register uint32_t Checksum=0xffffffff, V = KeyCheckSum;
   register uint32_t BodyMask = GetBodyLen(K)-1; // +1 because we will use this "Mersenne number" for & operation instead of modulus operation
-  register uint8_t *p = InOutBuf, *bp;
+  register uint8_t *p;
   uint8_t Body[MAX_BODY_SIZE];
   
   memcpy(Body,K+SP_BODY, BodyMask+1);
-  
+  p = InOutBuf;
   // We compute our start values as much randomly as possible upon salt(or nonce or iv) value which is transmitted with every data to be encrypted or decrypted
-  XORVal = ((( (Salt[0] ^ Salt[1]) ^ (KC&0xff)) ^ ( (Salt[2] ^ Salt[3]) ^ ((KC&0xff00)>>8) )) ^ (( (Salt[4] ^ Salt[7]) ^ ((KC&0xff0000)>>16) ) ^ ( (Salt[5] ^ Salt[6]) ^ ((KC&0xff000000)>>24) ))) & 0xff;
-  Salt1 = (uint32_t)(Salt[0]) & ((uint32_t)(Salt[1]) << 8) & ((uint32_t)(Salt[2]) << 16) & ((uint32_t)(Salt[3]) << 24);
-  Salt2 = (uint32_t)(Salt[4]) & ((uint32_t)(Salt[5]) << 8) & ((uint32_t)(Salt[6]) << 16) & ((uint32_t)(Salt[7]) << 24);
-  
+  Salt1 = ((uint32_t)(Salt[0]) & ((uint32_t)(Salt[1]) << 8) & ((uint32_t)(Salt[2]) << 16) & ((uint32_t)(Salt[3]) << 24));
+  Salt2 = ((uint32_t)(Salt[4]) & ((uint32_t)(Salt[5]) << 8) & ((uint32_t)(Salt[6]) << 16) & ((uint32_t)(Salt[7]) << 24));
   // Our initial jump position in the key body depends on a random value
-  M = (Salt2 ^ KC) & BodyMask;
+  M = ((((uint32_t)Salt[3]) * ((uint32_t)Salt[7]))) & BodyMask;
   
-  for (t=0; t<InOutDataLen; t++)
+  while (t--)
   { 
-    bp = (Body + M);
-    XORVal &= 0xff;
-    *p ^= ((uint8_t)(XORVal));
-    Checksum += *p; 
-    *bp ^= (uint8_t)(XORVal) ^ (uint8_t)(1 << (KC&7));  // Add a pseudo-random bit based on key crc
-    ROL32_1(KC); 
+    // First jump point
+    Salt1 ^= (uint32_t)(Body[M]);
+    Body[M] = (uint8_t)(Salt2); 
+    M = (M^Salt2) & BodyMask; 
+    ROL32_1(Salt2);
     
-    // First jump
-    XORVal ^=  *bp; 
-    XORVal ^= (uint8_t)((uint8_t)1 << (uint8_t)(Salt1&7)); ROL32_1(Salt2); // Add a pseudo-random bit based on first part of the Salt
-    M = (M ^ XORVal) & BodyMask; 
-    XORVal ^= (uint8_t)((uint8_t)1 << (uint8_t)(Salt2&7)); ROL32_1(Salt1); // Add another pseudo-random bit based on second part of the Salt
+    // Second jump point
+    Salt2 ^= (uint32_t)(Body[M]);
+    Body[M] = (uint8_t)(Salt1); 
+    M = (M^V) & BodyMask; 
+    ROR32_1(Salt1);
     
-    // Second jump
-    bp = (Body + M);
-    XORVal ^= *bp; 
-    M = (M ^ Salt1) & BodyMask;
-    XORVal ^= (1 << (M&7)); // Add another pseudo-random bit based on our position on key body
+    // Following jumps
+    Salt1 ^= (uint32_t)(Body[M]);
+    Body[M] = (uint8_t)(Salt2); 
+    M = (M^Salt2) & BodyMask; 
+    ROL32_1(Salt2);
     
-    // All following jumps are based on body values
-    bp = (Body + M); 
-    XORVal ^= *bp; 
-    M = (M ^ XORVal) & BodyMask;
-    bp = (Body + M); 
-    XORVal ^= *bp; 
-    M = (M ^ XORVal) & BodyMask;
+    Salt2 ^= (uint32_t)(Body[M]);
+    Body[M] = (uint8_t)(Salt1); 
+    M = (M^Salt1) & BodyMask; 
+    ROR32_1(Salt1);
+    
+    *p ^= ((uint8_t)(Salt1^Salt2^V));
+    Checksum = CRC32Table[*p ^ ((Checksum >> 24) & 0xff)] ^ (Checksum << 8); 
+    V ^= Checksum;
+    ROL32_1(V);
     p++;
   }
-  return Checksum;
+  return Checksum ^ 0xffffffff;
 } 
-
+#endif
 //#define xorEncryptDecrypt xorEncryptDecryptHOP5
 /* Memcpy Benchmark1 : 
  * This function 
@@ -1135,7 +1091,8 @@ double Benchmark1(uint8_t NumJumps, uint32_t BodyLen, uint32_t TestSampleLength,
   uint8_t *KeyBuf = (uint8_t *)malloc(xorComputeKeyBufLen(BodyLen)); assert (KeyBuf);
   uint8_t *Data = CreateDataBuf(TestSampleLength);
   unsigned long long int TotalProcessedBytes = 0;
-  uint32_t t,Salt;
+  uint32_t t; 
+  uint8_t Salt[SALT_SIZE];
   uint32_t KeyCheckSum;
   int Err;
   
@@ -1156,7 +1113,7 @@ double Benchmark1(uint8_t NumJumps, uint32_t BodyLen, uint32_t TestSampleLength,
   for (t=0; t<NumIterations; t++)
   {
     IncByOne(Data, TestSampleLength);
-    Salt=1234;
+    GetRandomNumbers(SALT_SIZE, Salt);
     xorEncrypt(KeyBuf, (uint8_t *)(&Salt), KeyCheckSum, TestSampleLength, Data);
     TotalProcessedBytes += TestSampleLength;
   }
@@ -1165,13 +1122,9 @@ double Benchmark1(uint8_t NumJumps, uint32_t BodyLen, uint32_t TestSampleLength,
   free(KeyBuf);
   return Average;
 }
-static inline uint64_t BufCheckSum(uint8_t *Buf, uint64_t BufLen)
+static inline uint32_t BufCheckSum(uint8_t *Buf, uint64_t BufLen)
 {
-  uint64_t t, CheckSum = 0;
-  
-  for (t=0; t<BufLen; t++)
-    CheckSum += Buf[t];
-  return CheckSum;
+  return digital_crc32(Buf, BufLen);
 }
 double BenchmarkHOP2(uint8_t NumJumps, uint32_t BodyLen, uint32_t TestSampleLength, uint32_t NumIterations)
 {
@@ -1180,11 +1133,12 @@ double BenchmarkHOP2(uint8_t NumJumps, uint32_t BodyLen, uint32_t TestSampleLeng
   unsigned long long int TotalProcessedBytes = 0;
   uint32_t t;
   uint32_t KeyCheckSum;
-  uint32_t  SaltData=1245;
+  uint8_t SaltData[SALT_SIZE]; 
   
   assert(KeyBuf);
   printf("BenchmarkHop2\n\tNumJumps: %u\n\tBodyLen: %u\n\tTestSampleLength: %u\n\tNumIterations: %u ... ",NumJumps,BodyLen,TestSampleLength,NumIterations);  
   
+  GetRandomNumbers(SALT_SIZE, SaltData);
   GetRandomNumbers(TestSampleLength, Data);
   int Err = xorGetKey(NumJumps, BodyLen, KeyBuf);
   if (Err != 0)
@@ -1217,10 +1171,11 @@ double BenchmarkHOP3(uint8_t NumJumps, uint32_t BodyLen, uint32_t TestSampleLeng
   unsigned long long int TotalProcessedBytes = 0;
   uint32_t t;
   uint32_t KeyCheckSum;
-  uint64_t SaltData;
+  uint8_t SaltData[SALT_SIZE]; 
   
   printf("BenchmarkHop3\n\tNumJumps: %u\n\tBodyLen: %u\n\tTestSampleLength: %u\n\tNumIterations: %u ... ",NumJumps,BodyLen,TestSampleLength,NumIterations);  
-  
+
+  GetRandomNumbers(SALT_SIZE, SaltData);  
   GetRandomNumbers(TestSampleLength, Data);
   int Err = xorGetKey(NumJumps, BodyLen, KeyBuf);
   if (Err != 0)
@@ -1253,10 +1208,11 @@ double BenchmarkHOP4(uint8_t NumJumps, uint32_t BodyLen, uint32_t TestSampleLeng
   unsigned long long int TotalProcessedBytes = 0;
   uint32_t t;
   uint32_t KeyCheckSum;
-  uint64_t SaltData;
+  uint8_t SaltData[SALT_SIZE]; 
   
   printf("BenchmarkHop4\n\tNumJumps: %u\n\tBodyLen: %u\n\tTestSampleLength: %u\n\tNumIterations: %u ... ",NumJumps,BodyLen,TestSampleLength,NumIterations);  
-  
+
+  GetRandomNumbers(SALT_SIZE, SaltData);    
   GetRandomNumbers(TestSampleLength, Data);
   int Err = xorGetKey(NumJumps, BodyLen, KeyBuf);
   if (Err != 0)
@@ -1291,8 +1247,9 @@ void CheckOptimizedVersion(unsigned NumJumps, unsigned BodyLen)
   uint8_t *KeyBuf = (uint8_t *)malloc(RawKeyLen); assert (KeyBuf);
   uint8_t PlainTextBuf[132000], Data[132000];
   unsigned long long int KeyCheckSum;
-  uint64_t SaltData;
+  uint8_t SaltData[SALT_SIZE]; 
   
+  GetRandomNumbers(SALT_SIZE, SaltData);  
   printf("-------------------- TESTING OPTIMIZED VERSION FOR %u PARTICLES -------------------------\n",NumJumps);
   int Err = xorGetKey(NumJumps, BodyLen, KeyBuf);
   if (Err != 0)
@@ -1310,15 +1267,12 @@ void CheckOptimizedVersion(unsigned NumJumps, unsigned BodyLen)
     PlainTextBuf[DLen] = (uint8_t)(DLen & 255);
     Data[DLen] = PlainTextBuf[DLen];
     OriginalPlainTextCheckSum = BufCheckSum(Data, DLen+1);
-    SaltData=1234;
     CheckSumReturnedFromEncryptor = xorEncrypt(KeyBuf, (uint8_t *)(&SaltData), KeyCheckSum, DLen+1, Data); // We encrypt with non-optimized version
     if (OriginalPlainTextCheckSum != CheckSumReturnedFromEncryptor)
     {
       printf("Original Checksum %llu returned from BufChecksum fnc <> Checksum %llu returned from xorEncryptDecrypt\n",OriginalPlainTextCheckSum,CheckSumReturnedFromEncryptor);
       exit(-1);
     }
-    // Salt data changes with every encrypt decrypt! 
-    SaltData=1234;
     if (NumJumps == 2)
       CheckSumReturnedFromDecryptor = xorDecryptHOP2(KeyBuf, (uint8_t *)(&SaltData), KeyCheckSum, DLen+1, Data);
     else if (NumJumps == 3)
@@ -1349,11 +1303,10 @@ void Test1(unsigned NumJumps, unsigned BodyLen)
   uint8_t Data[2048],Data2[2048];
   char *Base64EncodedKeyStr, *Base64CipherText;
   uint32_t KeyCheckSum;
-  uint64_t OriginalSaltData, SaltData;
+  uint8_t SaltData[SALT_SIZE];
   
   
-  GetRandomNumbers(SALT_SIZE, (uint8_t *)&OriginalSaltData); // Fill salt data with random numbers
-  SaltData = OriginalSaltData;
+  GetRandomNumbers(SALT_SIZE, SaltData);  
   
   printf("----------- TEST 1: BASIC FUNCTIONALITY(%u Jumps) --------------\n",NumJumps);
   int Err = xorGetKey(NumJumps, BodyLen, KeyBuf);
@@ -1380,7 +1333,6 @@ void Test1(unsigned NumJumps, unsigned BodyLen)
     exit(-1);
   } else printf("OriginalPlainTextCheckSum %llu = CheckSumReturnedFromEncryptor %llu :: SUCCESS!\n",OriginalPlainTextCheckSum,CheckSumReturnedFromEncryptor);
   // Now let's encrypt with the optimized encryptor
-  SaltData=OriginalSaltData;
   
   if (NumJumps == 2)
     CheckSumReturnedFromEncryptor = xorEncryptHOP2(KeyBuf, (uint8_t *)(&SaltData), KeyCheckSum, DLen, Data2); 
@@ -1405,7 +1357,6 @@ void Test1(unsigned NumJumps, unsigned BodyLen)
   Base64CipherText = Base64Encode((const char *)Data, DLen);
   printf("Base64CipherText: %s\n", Base64CipherText);
   printf("\n\nDecryption process:\n\n");
-  SaltData=OriginalSaltData;
   uint8_t *K = (uint8_t *)Base64Decode(Base64EncodedKeyStr);
   
   if (memcmp((char *)KeyBuf, (char *)K, RawKeyLen) != 0)
@@ -1462,7 +1413,7 @@ ssize_t EncryptFile(const char *InFileName, const char *OutFileName, uint8_t *Ke
   int32_t FDesc;   
   int64_t Len, RLen;
   uint8_t *Data;
-  uint64_t SaltData;
+  uint8_t SaltData[SALT_SIZE]; 
   ssize_t CheckSum=0;
   
   if ((FDesc = open(InFileName, O_RDONLY)) == -1)
@@ -1516,7 +1467,7 @@ ssize_t EncryptBMPFile(const char *InFileName, const char *OutFileName, uint8_t 
   int32_t FDesc;   
   int64_t Len, RLen;
   uint8_t *Data;
-  uint64_t SaltData;
+  uint8_t SaltData[SALT_SIZE]; 
   ssize_t CheckSum=0;
   
   if ((FDesc = open(InFileName, O_RDONLY)) == -1)
