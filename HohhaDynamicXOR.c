@@ -25,7 +25,7 @@ Alternatively you can use and distribute this file under the terms of the GNU Ge
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
-
+#include <endian.h>
 /* ---------------------------- BASE64 ENCODE/DECODE FUNCTIONS -------------------------------------
  */
 /*
@@ -331,107 +331,78 @@ uint8_t *CreateDataBuf(Size)
   return B;
 }
 
-/* -*- c++ -*- */
-/*
- * Copyright 2005,2011 Free Software Foundation, Inc.
- * 
- * This file is part of GNU Radio
- * 
- * GNU Radio is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3, or (at your option)
- * any later version.
- * 
- * GNU Radio is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with GNU Radio; see the file COPYING.  If not, write to
- * the Free Software Foundation, Inc., 51 Franklin Street,
- * Boston, MA 02110-1301, USA.
- */
-
-/*
- * See also ISO 3309 [ISO-3309] or ITU-T V.42 [ITU-V42] for a formal specification.
- */
-
-// Automatically generated CRC function
-// polynomial: 0x104C11DB7
 static const unsigned int CRC32Table[256] = {
-  0x00000000U,0x04C11DB7U,0x09823B6EU,0x0D4326D9U,
-  0x130476DCU,0x17C56B6BU,0x1A864DB2U,0x1E475005U,
-  0x2608EDB8U,0x22C9F00FU,0x2F8AD6D6U,0x2B4BCB61U,
-  0x350C9B64U,0x31CD86D3U,0x3C8EA00AU,0x384FBDBDU,
-  0x4C11DB70U,0x48D0C6C7U,0x4593E01EU,0x4152FDA9U,
-  0x5F15ADACU,0x5BD4B01BU,0x569796C2U,0x52568B75U,
-  0x6A1936C8U,0x6ED82B7FU,0x639B0DA6U,0x675A1011U,
-  0x791D4014U,0x7DDC5DA3U,0x709F7B7AU,0x745E66CDU,
-  0x9823B6E0U,0x9CE2AB57U,0x91A18D8EU,0x95609039U,
-  0x8B27C03CU,0x8FE6DD8BU,0x82A5FB52U,0x8664E6E5U,
-  0xBE2B5B58U,0xBAEA46EFU,0xB7A96036U,0xB3687D81U,
-  0xAD2F2D84U,0xA9EE3033U,0xA4AD16EAU,0xA06C0B5DU,
-  0xD4326D90U,0xD0F37027U,0xDDB056FEU,0xD9714B49U,
-  0xC7361B4CU,0xC3F706FBU,0xCEB42022U,0xCA753D95U,
-  0xF23A8028U,0xF6FB9D9FU,0xFBB8BB46U,0xFF79A6F1U,
-  0xE13EF6F4U,0xE5FFEB43U,0xE8BCCD9AU,0xEC7DD02DU,
-  0x34867077U,0x30476DC0U,0x3D044B19U,0x39C556AEU,
-  0x278206ABU,0x23431B1CU,0x2E003DC5U,0x2AC12072U,
-  0x128E9DCFU,0x164F8078U,0x1B0CA6A1U,0x1FCDBB16U,
-  0x018AEB13U,0x054BF6A4U,0x0808D07DU,0x0CC9CDCAU,
-  0x7897AB07U,0x7C56B6B0U,0x71159069U,0x75D48DDEU,
-  0x6B93DDDBU,0x6F52C06CU,0x6211E6B5U,0x66D0FB02U,
-  0x5E9F46BFU,0x5A5E5B08U,0x571D7DD1U,0x53DC6066U,
-  0x4D9B3063U,0x495A2DD4U,0x44190B0DU,0x40D816BAU,
-  0xACA5C697U,0xA864DB20U,0xA527FDF9U,0xA1E6E04EU,
-  0xBFA1B04BU,0xBB60ADFCU,0xB6238B25U,0xB2E29692U,
-  0x8AAD2B2FU,0x8E6C3698U,0x832F1041U,0x87EE0DF6U,
-  0x99A95DF3U,0x9D684044U,0x902B669DU,0x94EA7B2AU,
-  0xE0B41DE7U,0xE4750050U,0xE9362689U,0xEDF73B3EU,
-  0xF3B06B3BU,0xF771768CU,0xFA325055U,0xFEF34DE2U,
-  0xC6BCF05FU,0xC27DEDE8U,0xCF3ECB31U,0xCBFFD686U,
-  0xD5B88683U,0xD1799B34U,0xDC3ABDEDU,0xD8FBA05AU,
-  0x690CE0EEU,0x6DCDFD59U,0x608EDB80U,0x644FC637U,
-  0x7A089632U,0x7EC98B85U,0x738AAD5CU,0x774BB0EBU,
-  0x4F040D56U,0x4BC510E1U,0x46863638U,0x42472B8FU,
-  0x5C007B8AU,0x58C1663DU,0x558240E4U,0x51435D53U,
-  0x251D3B9EU,0x21DC2629U,0x2C9F00F0U,0x285E1D47U,
-  0x36194D42U,0x32D850F5U,0x3F9B762CU,0x3B5A6B9BU,
-  0x0315D626U,0x07D4CB91U,0x0A97ED48U,0x0E56F0FFU,
-  0x1011A0FAU,0x14D0BD4DU,0x19939B94U,0x1D528623U,
-  0xF12F560EU,0xF5EE4BB9U,0xF8AD6D60U,0xFC6C70D7U,
-  0xE22B20D2U,0xE6EA3D65U,0xEBA91BBCU,0xEF68060BU,
-  0xD727BBB6U,0xD3E6A601U,0xDEA580D8U,0xDA649D6FU,
-  0xC423CD6AU,0xC0E2D0DDU,0xCDA1F604U,0xC960EBB3U,
-  0xBD3E8D7EU,0xB9FF90C9U,0xB4BCB610U,0xB07DABA7U,
-  0xAE3AFBA2U,0xAAFBE615U,0xA7B8C0CCU,0xA379DD7BU,
-  0x9B3660C6U,0x9FF77D71U,0x92B45BA8U,0x9675461FU,
-  0x8832161AU,0x8CF30BADU,0x81B02D74U,0x857130C3U,
-  0x5D8A9099U,0x594B8D2EU,0x5408ABF7U,0x50C9B640U,
-  0x4E8EE645U,0x4A4FFBF2U,0x470CDD2BU,0x43CDC09CU,
-  0x7B827D21U,0x7F436096U,0x7200464FU,0x76C15BF8U,
-  0x68860BFDU,0x6C47164AU,0x61043093U,0x65C52D24U,
-  0x119B4BE9U,0x155A565EU,0x18197087U,0x1CD86D30U,
-  0x029F3D35U,0x065E2082U,0x0B1D065BU,0x0FDC1BECU,
-  0x3793A651U,0x3352BBE6U,0x3E119D3FU,0x3AD08088U,
-  0x2497D08DU,0x2056CD3AU,0x2D15EBE3U,0x29D4F654U,
-  0xC5A92679U,0xC1683BCEU,0xCC2B1D17U,0xC8EA00A0U,
-  0xD6AD50A5U,0xD26C4D12U,0xDF2F6BCBU,0xDBEE767CU,
-  0xE3A1CBC1U,0xE760D676U,0xEA23F0AFU,0xEEE2ED18U,
-  0xF0A5BD1DU,0xF464A0AAU,0xF9278673U,0xFDE69BC4U,
-  0x89B8FD09U,0x8D79E0BEU,0x803AC667U,0x84FBDBD0U,
-  0x9ABC8BD5U,0x9E7D9662U,0x933EB0BBU,0x97FFAD0CU,
-  0xAFB010B1U,0xAB710D06U,0xA6322BDFU,0xA2F33668U,
-  0xBCB4666DU,0xB8757BDAU,0xB5365D03U,0xB1F740B4U,
+  0x00000000, 0xf26b8303, 0xe13b70f7, 0x1350f3f4,
+  0xc79a971f, 0x35f1141c, 0x26a1e7e8, 0xd4ca64eb,
+  0x8ad958cf, 0x78b2dbcc, 0x6be22838, 0x9989ab3b,
+  0x4d43cfd0, 0xbf284cd3, 0xac78bf27, 0x5e133c24,
+  0x105ec76f, 0xe235446c, 0xf165b798, 0x030e349b,
+  0xd7c45070, 0x25afd373, 0x36ff2087, 0xc494a384,
+  0x9a879fa0, 0x68ec1ca3, 0x7bbcef57, 0x89d76c54,
+  0x5d1d08bf, 0xaf768bbc, 0xbc267848, 0x4e4dfb4b,
+  0x20bd8ede, 0xd2d60ddd, 0xc186fe29, 0x33ed7d2a,
+  0xe72719c1, 0x154c9ac2, 0x061c6936, 0xf477ea35,
+  0xaa64d611, 0x580f5512, 0x4b5fa6e6, 0xb93425e5,
+  0x6dfe410e, 0x9f95c20d, 0x8cc531f9, 0x7eaeb2fa,
+  0x30e349b1, 0xc288cab2, 0xd1d83946, 0x23b3ba45,
+  0xf779deae, 0x05125dad, 0x1642ae59, 0xe4292d5a,
+  0xba3a117e, 0x4851927d, 0x5b016189, 0xa96ae28a,
+  0x7da08661, 0x8fcb0562, 0x9c9bf696, 0x6ef07595,
+  0x417b1dbc, 0xb3109ebf, 0xa0406d4b, 0x522bee48,
+  0x86e18aa3, 0x748a09a0, 0x67dafa54, 0x95b17957,
+  0xcba24573, 0x39c9c670, 0x2a993584, 0xd8f2b687,
+  0x0c38d26c, 0xfe53516f, 0xed03a29b, 0x1f682198,
+  0x5125dad3, 0xa34e59d0, 0xb01eaa24, 0x42752927,
+  0x96bf4dcc, 0x64d4cecf, 0x77843d3b, 0x85efbe38,
+  0xdbfc821c, 0x2997011f, 0x3ac7f2eb, 0xc8ac71e8,
+  0x1c661503, 0xee0d9600, 0xfd5d65f4, 0x0f36e6f7,
+  0x61c69362, 0x93ad1061, 0x80fde395, 0x72966096,
+  0xa65c047d, 0x5437877e, 0x4767748a, 0xb50cf789,
+  0xeb1fcbad, 0x197448ae, 0x0a24bb5a, 0xf84f3859,
+  0x2c855cb2, 0xdeeedfb1, 0xcdbe2c45, 0x3fd5af46,
+  0x7198540d, 0x83f3d70e, 0x90a324fa, 0x62c8a7f9,
+  0xb602c312, 0x44694011, 0x5739b3e5, 0xa55230e6,
+  0xfb410cc2, 0x092a8fc1, 0x1a7a7c35, 0xe811ff36,
+  0x3cdb9bdd, 0xceb018de, 0xdde0eb2a, 0x2f8b6829,
+  0x82f63b78, 0x709db87b, 0x63cd4b8f, 0x91a6c88c,
+  0x456cac67, 0xb7072f64, 0xa457dc90, 0x563c5f93,
+  0x082f63b7, 0xfa44e0b4, 0xe9141340, 0x1b7f9043,
+  0xcfb5f4a8, 0x3dde77ab, 0x2e8e845f, 0xdce5075c,
+  0x92a8fc17, 0x60c37f14, 0x73938ce0, 0x81f80fe3,
+  0x55326b08, 0xa759e80b, 0xb4091bff, 0x466298fc,
+  0x1871a4d8, 0xea1a27db, 0xf94ad42f, 0x0b21572c,
+  0xdfeb33c7, 0x2d80b0c4, 0x3ed04330, 0xccbbc033,
+  0xa24bb5a6, 0x502036a5, 0x4370c551, 0xb11b4652,
+  0x65d122b9, 0x97baa1ba, 0x84ea524e, 0x7681d14d,
+  0x2892ed69, 0xdaf96e6a, 0xc9a99d9e, 0x3bc21e9d,
+  0xef087a76, 0x1d63f975, 0x0e330a81, 0xfc588982,
+  0xb21572c9, 0x407ef1ca, 0x532e023e, 0xa145813d,
+  0x758fe5d6, 0x87e466d5, 0x94b49521, 0x66df1622,
+  0x38cc2a06, 0xcaa7a905, 0xd9f75af1, 0x2b9cd9f2,
+  0xff56bd19, 0x0d3d3e1a, 0x1e6dcdee, 0xec064eed,
+  0xc38d26c4, 0x31e6a5c7, 0x22b65633, 0xd0ddd530,
+  0x0417b1db, 0xf67c32d8, 0xe52cc12c, 0x1747422f,
+  0x49547e0b, 0xbb3ffd08, 0xa86f0efc, 0x5a048dff,
+  0x8ecee914, 0x7ca56a17, 0x6ff599e3, 0x9d9e1ae0,
+  0xd3d3e1ab, 0x21b862a8, 0x32e8915c, 0xc083125f,
+  0x144976b4, 0xe622f5b7, 0xf5720643, 0x07198540,
+  0x590ab964, 0xab613a67, 0xb831c993, 0x4a5a4a90,
+  0x9e902e7b, 0x6cfbad78, 0x7fab5e8c, 0x8dc0dd8f,
+  0xe330a81a, 0x115b2b19, 0x020bd8ed, 0xf0605bee,
+  0x24aa3f05, 0xd6c1bc06, 0xc5914ff2, 0x37faccf1,
+  0x69e9f0d5, 0x9b8273d6, 0x88d28022, 0x7ab90321,
+  0xae7367ca, 0x5c18e4c9, 0x4f48173d, 0xbd23943e,
+  0xf36e6f75, 0x0105ec76, 0x12551f82, 0xe03e9c81,
+  0x34f4f86a, 0xc69f7b69, 0xd5cf889d, 0x27a40b9e,
+  0x79b737ba, 0x8bdcb4b9, 0x988c474d, 0x6ae7c44e,
+  0xbe2da0a5, 0x4c4623a6, 0x5f16d052, 0xad7d5351
   };
 unsigned int digital_update_crc32(unsigned int crc, const unsigned char *data, size_t len)
 {
-  while (len > 0)
+  while (len--)
   {
     crc = CRC32Table[*data ^ ((crc >> 24) & 0xff)] ^ (crc << 8);
     data++;
-    len--;
   }
   return crc;
 }
@@ -481,11 +452,6 @@ void GetRandomNumbers(uint32_t ByteCount, uint8_t *Buffer)
   }
   if (RANDOM_BUF_SIZE < RandomBufStartPos+ByteCount)
     RandomizeBuffer();
-  if (ByteCount == 1)
-  {
-    Buffer[0] = RandomBuf[RandomBufStartPos++];
-    return;
-  }
   memcpy(Buffer, RandomBuf + RandomBufStartPos, ByteCount);
   RandomBufStartPos += ByteCount;
 }
@@ -495,7 +461,20 @@ uint8_t GetRandomUInt8(void)
     RandomizeBuffer();
   return RandomBuf[RandomBufStartPos++];
 }
-
+uint32_t GetRandomUInt32(void)
+{
+  if (RandomBufStartPos+sizeof(uint32_t) > RANDOM_BUF_SIZE)
+    RandomizeBuffer();
+  RandomBufStartPos += sizeof(uint32_t);
+  return *((uint32_t *)(RandomBuf + RandomBufStartPos-sizeof(uint32_t)));
+}
+uint64_t GetRandomUInt64(void)
+{
+  if (RandomBufStartPos+sizeof(uint64_t) > RANDOM_BUF_SIZE)
+    RandomizeBuffer();
+  RandomBufStartPos += sizeof(uint64_t);
+  return *((uint64_t *)(RandomBuf + RandomBufStartPos-sizeof(uint64_t)));
+}
 // Standart C has not ROL or ROR function, but most modern cpus has instructions for circular shift operations
 // This is a quick and dirty code for standart C versions and Intel Family cpu assembler optimized versions
 
@@ -527,7 +506,7 @@ char *GetBinStr(uint32_t val, char *ResBuf)
 /* ------------------------- END UTILITY FUNCTIONS ----------------- */
 
 #define SALT_SIZE 8 // LEAVE AS IT IS
-#define MAX_NUM_JUMPS 64
+#define MAX_NUM_JUMPS 4 // If you change this limit, you must write proper hand optimized functions
 #define FALSE (0U)
 #define TRUE (!(FALSE))
 #define VERBOSE
@@ -535,6 +514,7 @@ char *GetBinStr(uint32_t val, char *ResBuf)
 /* Function used to determine if V is unique among the first Pos elements
  * Used by the xorGetKey function to check particle length uniqueness
  */
+#define MIN_BODY_SIZE 64
 #define MAX_BODY_SIZE 256 // DO NOT SET THIS LIMIT TO MORE THAN 256 BYTES! Or you must also change encryption&decryption code for key coverage
 
 #define SP_NUM_JUMPS 0
@@ -562,7 +542,7 @@ int xorGetKey(uint8_t NumJumps, uint32_t BodyLen, uint8_t *KeyBuf)
     return -2; // Number of jumps must be greater than or equal to 2
   if (NumJumps > MAX_NUM_JUMPS)
     return -3;
-  if (BodyLen < 16)
+  if (BodyLen < MIN_BODY_SIZE)
     return -4;
   if (BodyLen > MAX_BODY_SIZE)
     return -5;
@@ -579,21 +559,28 @@ int xorGetKey(uint8_t NumJumps, uint32_t BodyLen, uint8_t *KeyBuf)
 #define xorComputeKeyCheckSum(K) digital_crc32(GetBodyPtr(K), GetBodyLen(K))
 inline unsigned int CheckKeyIntegrity(uint8_t *K, size_t TotalKeyBufLen)
 {
-  return ((SP_BODY + GetBodyLen(K)) == TotalKeyBufLen);
+  unsigned int BodyLen = GetBodyLen(K);
+  return ( 
+    ((SP_BODY + BodyLen) == TotalKeyBufLen) &&
+    (((BodyLen-1) & BodyLen) == 0) && // Key body must be a multiple of two
+    (BodyLen >= MIN_BODY_SIZE && BodyLen <= MAX_BODY_SIZE) &&
+    (GetNumJumps(K) >= 2 && GetNumJumps(K) <= MAX_NUM_JUMPS)
+  );
 }
 
 void xorAnalyzeKey(uint8_t *K)
 {
   uint32_t t;
     
-  printf("-------------------------- Shifting xor key analyze ----------------------------\nNumJumps: %u\nBodyLen: %u nSalt: ", 
-         K[0], GetBodyLen(K));
+  printf("-------------------------- Shifting xor key analyze ----------------------------\nNumJumps: %u\nBodyLen: %u\nKeycrc: %u\nSalt: ", 
+         K[0], GetBodyLen(K), xorComputeKeyCheckSum(K));
   for (t=0; t < SALT_SIZE; t++)
   {
     printf(" %u", K[SP_SALT_DATA+t]);
   }
   printf("\n");
 }
+
 #if SALT_SIZE != 8
 #error SALT_SIZE is not supported
 #endif
@@ -625,9 +612,9 @@ uint32_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOu
   //   Create maximum random output to prevent detecting a pattern on ciphertext
   //   Hide the key body even if the attacker knows both the ciphertext and the plaintext
   // Method:
-  //   Our first number to be XORed with the first plaintext byte completely depends on the random salt value
-  //   Our starting point on the key body completely depends on the random salt value
-  //   All subsequent ciphertext outputs completely depend on the starting values: Even attacker intercepts the ciphertext and plaintext,
+  //   Our first number to be XORed with the first plaintext byte depends on the random salt value
+  //   Our starting point on the key body depends on the random salt value
+  //   All subsequent ciphertext outputs depend on the starting values: Even attacker intercepts the ciphertext and plaintext,
   //       the data gathered will not be useful to deciphher subsequent encryptions. Because, they will use different salt data.
   //   To hide our key body elements
   //     We XOR at least two body elements(jumps) with each other.
@@ -648,8 +635,8 @@ uint32_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOu
   memcpy(Body,K+SP_BODY, BodyMask+1);
   p = InOutBuf;
   // We compute our start values as much randomly as possible upon salt(or nonce or iv) value which is transmitted with every data to be encrypted or decrypted
-  Salt1 = ((uint32_t)(Salt[0]) & ((uint32_t)(Salt[1]) << 8) & ((uint32_t)(Salt[2]) << 16) & ((uint32_t)(Salt[3]) << 24));
-  Salt2 = ((uint32_t)(Salt[4]) & ((uint32_t)(Salt[5]) << 8) & ((uint32_t)(Salt[6]) << 16) & ((uint32_t)(Salt[7]) << 24));
+  Salt1 = ((uint32_t)(Salt[0]) | ((uint32_t)(Salt[1]) << 8) | ((uint32_t)(Salt[2]) << 16) | ((uint32_t)(Salt[3]) << 24));
+  Salt2 = ((uint32_t)(Salt[4]) | ((uint32_t)(Salt[5]) << 8) | ((uint32_t)(Salt[6]) << 16) | ((uint32_t)(Salt[7]) << 24));
   // Our initial jump position in the key body depends on a random value
   M = ((((uint32_t)Salt[3]) * ((uint32_t)Salt[7]))) & BodyMask;
   
@@ -680,7 +667,7 @@ uint32_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOu
       else {
         Salt1 ^= (uint32_t)(Body[M]);
         Body[M] = (uint8_t)(Salt2); 
-        M = (M^Salt2) & BodyMask; 
+        M = (M^V) & BodyMask; 
         ROL32_1(Salt2);
       }
     }
@@ -708,11 +695,11 @@ uint32_t xorDecrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOu
   memcpy(Body,K+SP_BODY, BodyMask+1);
   p = InOutBuf;
   // We compute our start values as much randomly as possible upon salt(or nonce or iv) value which is transmitted with every data to be encrypted or decrypted
-  Salt1 = ((uint32_t)(Salt[0]) & ((uint32_t)(Salt[1]) << 8) & ((uint32_t)(Salt[2]) << 16) & ((uint32_t)(Salt[3]) << 24));
-  Salt2 = ((uint32_t)(Salt[4]) & ((uint32_t)(Salt[5]) << 8) & ((uint32_t)(Salt[6]) << 16) & ((uint32_t)(Salt[7]) << 24));
+  Salt1 = (uint32_t)(Salt[0]) | ((uint32_t)(Salt[1]) << 8) | ((uint32_t)(Salt[2]) << 16) | ((uint32_t)(Salt[3]) << 24);
+  Salt2 = (uint32_t)(Salt[4]) | ((uint32_t)(Salt[5]) << 8) | ((uint32_t)(Salt[6]) << 16) | ((uint32_t)(Salt[7]) << 24);
   // Our initial jump position in the key body depends on a random value
   M = ((((uint32_t)Salt[3]) * ((uint32_t)Salt[7]))) & BodyMask;
-  
+  //printf("Salt1: %u Salt2: %u M: %u\n ",Salt1,Salt2,M);
   while (t--)
   { 
     //V ^= ((uint32_t)1 << (uint32_t)(M&(uint32_t)31));
@@ -741,7 +728,7 @@ uint32_t xorDecrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOu
       else {
         Salt1 ^= (uint32_t)(Body[M]);
         Body[M] = (uint8_t)(Salt2); 
-        M = (M^Salt2) & BodyMask; 
+        M = (M^V) & BodyMask; 
         ROL32_1(Salt2);
       }
     }
@@ -775,8 +762,8 @@ uint32_t xorEncryptHOP2(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
   memcpy(Body,K+SP_BODY, BodyMask+1);
   p = InOutBuf;
   // We compute our start values as much randomly as possible upon salt(or nonce or iv) value which is transmitted with every data to be encrypted or decrypted
-  Salt1 = ((uint32_t)(Salt[0]) & ((uint32_t)(Salt[1]) << 8) & ((uint32_t)(Salt[2]) << 16) & ((uint32_t)(Salt[3]) << 24));
-  Salt2 = ((uint32_t)(Salt[4]) & ((uint32_t)(Salt[5]) << 8) & ((uint32_t)(Salt[6]) << 16) & ((uint32_t)(Salt[7]) << 24));
+  Salt1 = ((uint32_t)(Salt[0]) | ((uint32_t)(Salt[1]) << 8) | ((uint32_t)(Salt[2]) << 16) | ((uint32_t)(Salt[3]) << 24));
+  Salt2 = ((uint32_t)(Salt[4]) | ((uint32_t)(Salt[5]) << 8) | ((uint32_t)(Salt[6]) << 16) | ((uint32_t)(Salt[7]) << 24));
   // Our initial jump position in the key body depends on a random value
   M = ((((uint32_t)Salt[3]) * ((uint32_t)Salt[7]))) & BodyMask;
   
@@ -816,11 +803,11 @@ uint32_t xorDecryptHOP2(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
   memcpy(Body,K+SP_BODY, BodyMask+1);
   p = InOutBuf;
   // We compute our start values as much randomly as possible upon salt(or nonce or iv) value which is transmitted with every data to be encrypted or decrypted
-  Salt1 = ((uint32_t)(Salt[0]) & ((uint32_t)(Salt[1]) << 8) & ((uint32_t)(Salt[2]) << 16) & ((uint32_t)(Salt[3]) << 24));
-  Salt2 = ((uint32_t)(Salt[4]) & ((uint32_t)(Salt[5]) << 8) & ((uint32_t)(Salt[6]) << 16) & ((uint32_t)(Salt[7]) << 24));
+  Salt1 = ((uint32_t)(Salt[0]) | ((uint32_t)(Salt[1]) << 8) | ((uint32_t)(Salt[2]) << 16) | ((uint32_t)(Salt[3]) << 24));
+  Salt2 = ((uint32_t)(Salt[4]) | ((uint32_t)(Salt[5]) << 8) | ((uint32_t)(Salt[6]) << 16) | ((uint32_t)(Salt[7]) << 24));
   // Our initial jump position in the key body depends on a random value
   M = ((((uint32_t)Salt[3]) * ((uint32_t)Salt[7]))) & BodyMask;
-  
+  //printf("Salt1: %u Salt2: %u M: %u\n ",Salt1,Salt2,M);
   while (t--)
   { 
     // First jump point
@@ -857,8 +844,8 @@ uint32_t xorEncryptHOP3(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
   memcpy(Body,K+SP_BODY, BodyMask+1);
   p = InOutBuf;
   // We compute our start values as much randomly as possible upon salt(or nonce or iv) value which is transmitted with every data to be encrypted or decrypted
-  Salt1 = ((uint32_t)(Salt[0]) & ((uint32_t)(Salt[1]) << 8) & ((uint32_t)(Salt[2]) << 16) & ((uint32_t)(Salt[3]) << 24));
-  Salt2 = ((uint32_t)(Salt[4]) & ((uint32_t)(Salt[5]) << 8) & ((uint32_t)(Salt[6]) << 16) & ((uint32_t)(Salt[7]) << 24));
+  Salt1 = ((uint32_t)(Salt[0]) | ((uint32_t)(Salt[1]) << 8) | ((uint32_t)(Salt[2]) << 16) | ((uint32_t)(Salt[3]) << 24));
+  Salt2 = ((uint32_t)(Salt[4]) | ((uint32_t)(Salt[5]) << 8) | ((uint32_t)(Salt[6]) << 16) | ((uint32_t)(Salt[7]) << 24));
   // Our initial jump position in the key body depends on a random value
   M = ((((uint32_t)Salt[3]) * ((uint32_t)Salt[7]))) & BodyMask;
   
@@ -878,7 +865,7 @@ uint32_t xorEncryptHOP3(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
     
     Salt1 ^= (uint32_t)(Body[M]);
     Body[M] = (uint8_t)(Salt2); 
-    M = (M^Salt2) & BodyMask; 
+    M = (M^V) & BodyMask; 
     ROL32_1(Salt2);
     
     Checksum = CRC32Table[*p ^ ((Checksum >> 24) & 0xff)] ^ (Checksum << 8); 
@@ -903,8 +890,8 @@ uint32_t xorDecryptHOP3(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
   memcpy(Body,K+SP_BODY, BodyMask+1);
   p = InOutBuf;
   // We compute our start values as much randomly as possible upon salt(or nonce or iv) value which is transmitted with every data to be encrypted or decrypted
-  Salt1 = ((uint32_t)(Salt[0]) & ((uint32_t)(Salt[1]) << 8) & ((uint32_t)(Salt[2]) << 16) & ((uint32_t)(Salt[3]) << 24));
-  Salt2 = ((uint32_t)(Salt[4]) & ((uint32_t)(Salt[5]) << 8) & ((uint32_t)(Salt[6]) << 16) & ((uint32_t)(Salt[7]) << 24));
+  Salt1 = ((uint32_t)(Salt[0]) | ((uint32_t)(Salt[1]) << 8) | ((uint32_t)(Salt[2]) << 16) | ((uint32_t)(Salt[3]) << 24));
+  Salt2 = ((uint32_t)(Salt[4]) | ((uint32_t)(Salt[5]) << 8) | ((uint32_t)(Salt[6]) << 16) | ((uint32_t)(Salt[7]) << 24));
   // Our initial jump position in the key body depends on a random value
   M = ((((uint32_t)Salt[3]) * ((uint32_t)Salt[7]))) & BodyMask;
   
@@ -924,7 +911,7 @@ uint32_t xorDecryptHOP3(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
     
     Salt1 ^= (uint32_t)(Body[M]);
     Body[M] = (uint8_t)(Salt2); 
-    M = (M^Salt2) & BodyMask; 
+    M = (M^V) & BodyMask; 
     ROL32_1(Salt2);
     
     *p ^= ((uint8_t)(Salt1^Salt2^V));
@@ -949,8 +936,8 @@ uint32_t xorEncryptHOP4(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
   memcpy(Body,K+SP_BODY, BodyMask+1);
   p = InOutBuf;
   // We compute our start values as much randomly as possible upon salt(or nonce or iv) value which is transmitted with every data to be encrypted or decrypted
-  Salt1 = ((uint32_t)(Salt[0]) & ((uint32_t)(Salt[1]) << 8) & ((uint32_t)(Salt[2]) << 16) & ((uint32_t)(Salt[3]) << 24));
-  Salt2 = ((uint32_t)(Salt[4]) & ((uint32_t)(Salt[5]) << 8) & ((uint32_t)(Salt[6]) << 16) & ((uint32_t)(Salt[7]) << 24));
+  Salt1 = ((uint32_t)(Salt[0]) | ((uint32_t)(Salt[1]) << 8) | ((uint32_t)(Salt[2]) << 16) | ((uint32_t)(Salt[3]) << 24));
+  Salt2 = ((uint32_t)(Salt[4]) | ((uint32_t)(Salt[5]) << 8) | ((uint32_t)(Salt[6]) << 16) | ((uint32_t)(Salt[7]) << 24));
   // Our initial jump position in the key body depends on a random value
   M = ((((uint32_t)Salt[3]) * ((uint32_t)Salt[7]))) & BodyMask;
   
@@ -971,7 +958,7 @@ uint32_t xorEncryptHOP4(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
     // Following jumps
     Salt1 ^= (uint32_t)(Body[M]);
     Body[M] = (uint8_t)(Salt2); 
-    M = (M^Salt2) & BodyMask; 
+    M = (M^V) & BodyMask; 
     ROL32_1(Salt2);
     
     Salt2 ^= (uint32_t)(Body[M]);
@@ -1001,8 +988,8 @@ uint32_t xorDecryptHOP4(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
   memcpy(Body,K+SP_BODY, BodyMask+1);
   p = InOutBuf;
   // We compute our start values as much randomly as possible upon salt(or nonce or iv) value which is transmitted with every data to be encrypted or decrypted
-  Salt1 = ((uint32_t)(Salt[0]) & ((uint32_t)(Salt[1]) << 8) & ((uint32_t)(Salt[2]) << 16) & ((uint32_t)(Salt[3]) << 24));
-  Salt2 = ((uint32_t)(Salt[4]) & ((uint32_t)(Salt[5]) << 8) & ((uint32_t)(Salt[6]) << 16) & ((uint32_t)(Salt[7]) << 24));
+  Salt1 = ((uint32_t)(Salt[0]) | ((uint32_t)(Salt[1]) << 8) | ((uint32_t)(Salt[2]) << 16) | ((uint32_t)(Salt[3]) << 24));
+  Salt2 = ((uint32_t)(Salt[4]) | ((uint32_t)(Salt[5]) << 8) | ((uint32_t)(Salt[6]) << 16) | ((uint32_t)(Salt[7]) << 24));
   // Our initial jump position in the key body depends on a random value
   M = ((((uint32_t)Salt[3]) * ((uint32_t)Salt[7]))) & BodyMask;
   
@@ -1023,7 +1010,7 @@ uint32_t xorDecryptHOP4(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
     // Following jumps
     Salt1 ^= (uint32_t)(Body[M]);
     Body[M] = (uint8_t)(Salt2); 
-    M = (M^Salt2) & BodyMask; 
+    M = (M^V) & BodyMask; 
     ROL32_1(Salt2);
     
     Salt2 ^= (uint32_t)(Body[M]);
@@ -1039,6 +1026,167 @@ uint32_t xorDecryptHOP4(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
   }
   return Checksum ^ 0xffffffff;
 } 
+
+typedef uint32_t (*THOPEncryptorFnc)(uint8_t *Key, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf);
+typedef uint32_t (*THOPDecryptorFnc)(uint8_t *Key, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf);
+static inline THOPEncryptorFnc xorGetProperHOPEncryptorFnc(uint8_t *Key)
+{
+  if (GetNumJumps(Key) == 2)
+    return &xorEncryptHOP2;
+  if (GetNumJumps(Key) == 3)
+    return &xorEncryptHOP3;
+  if (GetNumJumps(Key) == 4)
+    return &xorEncryptHOP4;
+  return NULL;
+}
+static inline THOPDecryptorFnc xorGetProperHOPDecryptorFnc(uint8_t *Key)
+{
+  if (GetNumJumps(Key) == 2)
+    return &xorDecryptHOP2;
+  if (GetNumJumps(Key) == 3)
+    return &xorDecryptHOP3;
+  if (GetNumJumps(Key) == 4)
+    return &xorDecryptHOP4;
+  return NULL;
+}
+/* --------------------- HOHHA PROTOCOL SPECIFIC FUNCTIONS --------------- */
+
+// Hohha communication header structure:
+// 8 bytes packet salt value for encryption
+// 2 bytes packet plaintext length(low byte first)
+// 4 bytes -> Plaintext checksum
+#define ALIGN_TO(v,n) ((uint32_t)((v)+(n)-1) & (uint32_t)(0xffffffff - (n - 1)))
+typedef struct __attribute__((__packed__)) {
+  uint8_t Salt[SALT_SIZE]; // Salt value unique for packet
+  uint32_t PlaintextCRC; // Plaintext CRC value to check integrity of the packet LITTLE ENDIAN
+  uint8_t BodyLen[2]; // Max. hohha communication packet size is 65535
+  uint8_t LeftPadding; // The packets lengths are multiples of 64 bytes. Left padding is the starting position of "real data" in the packet
+} THohhaPacketHeader;
+#define HHLEN sizeof(THohhaPacketHeader)
+#define HOHHA_TOTAL_COMM_PACKET_SIZE(DataSize,DataAlignment) ((ALIGN_TO(DataSize,DataAlignment)) + sizeof(THohhaPacketHeader))
+uint8_t *CreateHohhaCommunicationPacket(uint8_t *K, uint32_t KeyCheckSum, size_t InDataLen, uint8_t *InBuf, uint32_t DataAlignment)
+{ // This function encrypts InBuf and creates a communication packet with a proper header
+  // Allocates and returns encrypted packet data with size equal to HOHHA_TOTAL_COMM_PACKET_SIZE(DataSize)
+  uint8_t *OriginalSalt = K + SP_SALT_DATA;
+  uint32_t AlignedDataLen = ALIGN_TO(InDataLen,DataAlignment);
+  THOPEncryptorFnc EncryptorFnc = xorGetProperHOPEncryptorFnc(K);
+  uint8_t *OutBuf = malloc(AlignedDataLen + sizeof(THohhaPacketHeader));
+  
+  if (!OutBuf)
+    return OutBuf;
+  THohhaPacketHeader *PacketHeader = (THohhaPacketHeader *)OutBuf;
+  uint8_t *OBufStart = OutBuf + sizeof(THohhaPacketHeader);
+  
+  // First, let's create a new salt value unique for this transmission and copy original salt data to a buffer
+  GetRandomNumbers(SALT_SIZE, (uint8_t *)&(PacketHeader->Salt));
+  // Write exact data length to packet header
+  PacketHeader->BodyLen[0] = (uint8_t)(InDataLen >> 8);
+  PacketHeader->BodyLen[1] = (uint8_t)(InDataLen & 0xff);
+  // We align real data to middle of the aligned packet
+  PacketHeader->LeftPadding = (AlignedDataLen-InDataLen) >> 1;
+  
+  // Fill padding data if necessary
+  if (PacketHeader->LeftPadding)
+  {
+    uint8_t *dp = OBufStart;
+    uint32_t PadVal = GetRandomUInt32();
+    uint32_t R = PacketHeader->LeftPadding;
+    
+    // We put left padding characters
+    while (R--)
+    {
+      ROL32_1(PadVal);
+      *dp = (uint8_t)PadVal;
+      ++dp;
+    }
+    // Then, we put right padding characters if necessary
+    R = AlignedDataLen - (PacketHeader->LeftPadding + InDataLen);
+    dp = OBufStart + PacketHeader->LeftPadding + InDataLen;
+    while (R--)
+    {
+      ROL32_1(PadVal);
+      *dp = (uint8_t)PadVal;
+      ++dp;
+    }
+  }
+  // Now, let's copy our plaintext to new packet
+  memcpy(OBufStart + PacketHeader->LeftPadding, InBuf, InDataLen);
+  
+  // Now, let's encrypt our data
+  PacketHeader->PlaintextCRC = htole32(EncryptorFnc(K, PacketHeader->Salt, KeyCheckSum, AlignedDataLen, OBufStart));
+  // We encrypted our packet. Now, let's encrypt packet header with original salt and key
+  EncryptorFnc(K, OriginalSalt, KeyCheckSum, sizeof(THohhaPacketHeader), OutBuf);
+  return OutBuf;
+}
+
+void CreateHohhaCommunicationPacket2(uint8_t *K, uint32_t KeyCheckSum, size_t InDataLen, uint8_t *InBuf, uint32_t DataAlignment, uint8_t *OutBuf)
+{ // This function encrypts InBuf and creates a communication packet with a proper header
+  // OutBuf must be already allocated and must be enough large to store (InDataLen-1 + HOHHA_PACKET_ALIGNMENT + HHLEN) bytes
+  uint8_t *OriginalSalt = K + SP_SALT_DATA;
+  THohhaPacketHeader *PacketHeader = (THohhaPacketHeader *)OutBuf;
+  uint8_t *OBufStart = OutBuf + sizeof(THohhaPacketHeader);
+  uint32_t AlignedDataLen = ALIGN_TO(InDataLen,DataAlignment);
+  THOPEncryptorFnc EncryptorFnc = xorGetProperHOPEncryptorFnc(K);
+  
+  // First, let's create a new salt value unique for this transmission and copy original salt data to a buffer
+  GetRandomNumbers(SALT_SIZE, (uint8_t *)&(PacketHeader->Salt));
+  // Write exact data length to packet header
+  PacketHeader->BodyLen[0] = (uint8_t)(InDataLen >> 8);
+  PacketHeader->BodyLen[1] = (uint8_t)(InDataLen & 0xff);
+  // We align real data to middle of the aligned packet
+  PacketHeader->LeftPadding = (AlignedDataLen-InDataLen) >> 1;
+  
+  // Fill padding data if necessary
+  if (PacketHeader->LeftPadding)
+  {
+    uint8_t *dp = OBufStart;
+    uint32_t PadVal = GetRandomUInt32();
+    uint32_t R = PacketHeader->LeftPadding;
+    
+    // We put left padding characters
+    while (R--)
+    {
+      ROL32_1(PadVal);
+      *dp = (uint8_t)PadVal;
+      ++dp;
+    }
+    // Then, we put right padding characters if necessary
+    R = AlignedDataLen - (PacketHeader->LeftPadding + InDataLen);
+    dp = OBufStart + PacketHeader->LeftPadding + InDataLen;
+    while (R--)
+    {
+      ROL32_1(PadVal);
+      *dp = (uint8_t)PadVal;
+      ++dp;
+    }
+  }
+  // Now, let's copy our plaintext to new packet
+  memcpy(OBufStart + PacketHeader->LeftPadding, InBuf, InDataLen);
+  
+  // Now, let's encrypt our data
+  PacketHeader->PlaintextCRC = htole32(EncryptorFnc(K, PacketHeader->Salt, KeyCheckSum, AlignedDataLen, OBufStart));
+  // We encrypted our packet. Now, let's encrypt packet header with original salt and key
+  EncryptorFnc(K, OriginalSalt, KeyCheckSum, sizeof(THohhaPacketHeader), OutBuf);
+}
+
+int DecryptCommPacket(uint8_t *K, uint32_t KeyCheckSum, size_t TotalPacketLen, uint8_t *InOutBuf)
+{ // Decrypts the packet and returns 0 on success or negative on error
+  uint32_t PlaintextCRC;
+  uint8_t *OriginalSalt = K + SP_SALT_DATA;
+  THohhaPacketHeader *PacketHeader = (THohhaPacketHeader *)InOutBuf;
+  THOPDecryptorFnc DecryptorFnc = xorGetProperHOPDecryptorFnc(K);
+  
+  // First, we must decrypt the header with key and original salt value
+  DecryptorFnc(K, OriginalSalt, KeyCheckSum, sizeof(THohhaPacketHeader), InOutBuf);
+  // Then, we must decrypt the packet with salt value obtained from header
+  PlaintextCRC = htole32(DecryptorFnc(K, PacketHeader->Salt, KeyCheckSum, TotalPacketLen-sizeof(THohhaPacketHeader), InOutBuf + sizeof(THohhaPacketHeader)));
+  // Let's make integrity checks:
+  if (PacketHeader->PlaintextCRC != PlaintextCRC)
+    return -1; // CRC mismatch
+  return 0;
+}
+/* --------------------- HOHHA PROTOCOL SPECIFIC FUNCTIONS ENDS HERE --------------- */
+
 #endif
 //#define xorEncryptDecrypt xorEncryptDecryptHOP5
 /* Memcpy Benchmark1 : 
@@ -1126,7 +1274,7 @@ static inline uint32_t BufCheckSum(uint8_t *Buf, uint64_t BufLen)
 {
   return digital_crc32(Buf, BufLen);
 }
-double BenchmarkHOP2(uint8_t NumJumps, uint32_t BodyLen, uint32_t TestSampleLength, uint32_t NumIterations)
+double BenchmarkHOP(uint8_t NumJumps, uint32_t BodyLen, uint32_t TestSampleLength, uint32_t NumIterations)
 {
   uint8_t *KeyBuf = (uint8_t *)malloc(xorComputeKeyBufLen(BodyLen)); assert (KeyBuf);
   uint8_t *Data = CreateDataBuf(TestSampleLength);
@@ -1135,8 +1283,9 @@ double BenchmarkHOP2(uint8_t NumJumps, uint32_t BodyLen, uint32_t TestSampleLeng
   uint32_t KeyCheckSum;
   uint8_t SaltData[SALT_SIZE]; 
   
+  
   assert(KeyBuf);
-  printf("BenchmarkHop2\n\tNumJumps: %u\n\tBodyLen: %u\n\tTestSampleLength: %u\n\tNumIterations: %u ... ",NumJumps,BodyLen,TestSampleLength,NumIterations);  
+  printf("BenchmarkHop\n\tNumJumps: %u\n\tBodyLen: %u\n\tTestSampleLength: %u\n\tNumIterations: %u ... ",NumJumps,BodyLen,TestSampleLength,NumIterations);  
   
   GetRandomNumbers(SALT_SIZE, SaltData);
   GetRandomNumbers(TestSampleLength, Data);
@@ -1152,84 +1301,11 @@ double BenchmarkHOP2(uint8_t NumJumps, uint32_t BodyLen, uint32_t TestSampleLeng
   gettimeofday (&StartTime, NULL); 
   
   BufCheckSum(Data, TestSampleLength);  
+  THOPEncryptorFnc EncryptorFnc = xorGetProperHOPEncryptorFnc(KeyBuf);
   for (t=0; t<NumIterations; t++)
   {
     IncByOne(Data, TestSampleLength);
-    xorEncryptHOP2(KeyBuf, (uint8_t *)(&SaltData), KeyCheckSum, TestSampleLength, Data);
-    TotalProcessedBytes += TestSampleLength;
-  }
-  double Average = PrintElapsedTime(&StartTime,TotalProcessedBytes);
-  free(Data);
-  free(KeyBuf);
-  return Average;
-}
-
-double BenchmarkHOP3(uint8_t NumJumps, uint32_t BodyLen, uint32_t TestSampleLength, uint32_t NumIterations)
-{
-  uint8_t *KeyBuf = (uint8_t *)malloc(xorComputeKeyBufLen(BodyLen));assert (KeyBuf);
-  uint8_t *Data = CreateDataBuf(TestSampleLength);
-  unsigned long long int TotalProcessedBytes = 0;
-  uint32_t t;
-  uint32_t KeyCheckSum;
-  uint8_t SaltData[SALT_SIZE]; 
-  
-  printf("BenchmarkHop3\n\tNumJumps: %u\n\tBodyLen: %u\n\tTestSampleLength: %u\n\tNumIterations: %u ... ",NumJumps,BodyLen,TestSampleLength,NumIterations);  
-
-  GetRandomNumbers(SALT_SIZE, SaltData);  
-  GetRandomNumbers(TestSampleLength, Data);
-  int Err = xorGetKey(NumJumps, BodyLen, KeyBuf);
-  if (Err != 0)
-  {
-    printf("Couldn't create the key. Error: %d\n",Err);
-    exit(-1);
-  }
-  KeyCheckSum = xorComputeKeyCheckSum(KeyBuf);
-  xorAnalyzeKey(KeyBuf);
-  struct timeval StartTime;
-  gettimeofday (&StartTime, NULL); 
-  
-  BufCheckSum(Data, TestSampleLength);  
-  for (t=0; t<NumIterations; t++)
-  {
-    IncByOne(Data, TestSampleLength);
-    xorEncryptHOP3(KeyBuf, (uint8_t *)(&SaltData), KeyCheckSum, TestSampleLength, Data);
-    TotalProcessedBytes += TestSampleLength;
-  }
-  double Average = PrintElapsedTime(&StartTime,TotalProcessedBytes);
-  free(Data);
-  free(KeyBuf);
-  return Average;
-}
-
-double BenchmarkHOP4(uint8_t NumJumps, uint32_t BodyLen, uint32_t TestSampleLength, uint32_t NumIterations)
-{
-  uint8_t *KeyBuf = (uint8_t *)malloc(xorComputeKeyBufLen(BodyLen)); assert (KeyBuf);
-  uint8_t *Data = CreateDataBuf(TestSampleLength);
-  unsigned long long int TotalProcessedBytes = 0;
-  uint32_t t;
-  uint32_t KeyCheckSum;
-  uint8_t SaltData[SALT_SIZE]; 
-  
-  printf("BenchmarkHop4\n\tNumJumps: %u\n\tBodyLen: %u\n\tTestSampleLength: %u\n\tNumIterations: %u ... ",NumJumps,BodyLen,TestSampleLength,NumIterations);  
-
-  GetRandomNumbers(SALT_SIZE, SaltData);    
-  GetRandomNumbers(TestSampleLength, Data);
-  int Err = xorGetKey(NumJumps, BodyLen, KeyBuf);
-  if (Err != 0)
-  {
-    printf("Couldn't create the key. Error: %d\n",Err);
-    exit(-1);
-  }
-  KeyCheckSum = xorComputeKeyCheckSum(KeyBuf);
-  xorAnalyzeKey(KeyBuf);
-  struct timeval StartTime;
-  gettimeofday (&StartTime, NULL); 
-  
-  BufCheckSum(Data, TestSampleLength);  
-  for (t=0; t<NumIterations; t++)
-  {
-    IncByOne(Data, TestSampleLength);
-    xorEncryptHOP4(KeyBuf, (uint8_t *)(&SaltData), KeyCheckSum, TestSampleLength, Data);
+    EncryptorFnc(KeyBuf, (uint8_t *)(&SaltData), KeyCheckSum, TestSampleLength, Data);
     TotalProcessedBytes += TestSampleLength;
   }
   double Average = PrintElapsedTime(&StartTime,TotalProcessedBytes);
@@ -1273,13 +1349,8 @@ void CheckOptimizedVersion(unsigned NumJumps, unsigned BodyLen)
       printf("Original Checksum %llu returned from BufChecksum fnc <> Checksum %llu returned from xorEncryptDecrypt\n",OriginalPlainTextCheckSum,CheckSumReturnedFromEncryptor);
       exit(-1);
     }
-    if (NumJumps == 2)
-      CheckSumReturnedFromDecryptor = xorDecryptHOP2(KeyBuf, (uint8_t *)(&SaltData), KeyCheckSum, DLen+1, Data);
-    else if (NumJumps == 3)
-      CheckSumReturnedFromDecryptor = xorDecryptHOP3(KeyBuf, (uint8_t *)(&SaltData), KeyCheckSum, DLen+1, Data);
-    else if (NumJumps == 4)
-      CheckSumReturnedFromDecryptor = xorDecryptHOP4(KeyBuf, (uint8_t *)(&SaltData), KeyCheckSum, DLen+1, Data);
-    else exit(-1);
+    THOPDecryptorFnc DecryptorFnc = xorGetProperHOPDecryptorFnc(KeyBuf);
+    CheckSumReturnedFromDecryptor = DecryptorFnc(KeyBuf, (uint8_t *)(&SaltData), KeyCheckSum, DLen+1, Data);
     
     if (OriginalPlainTextCheckSum != CheckSumReturnedFromDecryptor)
     {
@@ -1303,11 +1374,10 @@ void Test1(unsigned NumJumps, unsigned BodyLen)
   uint8_t Data[2048],Data2[2048];
   char *Base64EncodedKeyStr, *Base64CipherText;
   uint32_t KeyCheckSum;
-  uint8_t SaltData[SALT_SIZE];
+  //uint8_t SaltData[SALT_SIZE];
   
-  
-  GetRandomNumbers(SALT_SIZE, SaltData);  
-  
+  //GetRandomNumbers(SALT_SIZE, SaltData);  
+  uint8_t *SaltData = KeyBuf + SP_SALT_DATA;
   printf("----------- TEST 1: BASIC FUNCTIONALITY(%u Jumps) --------------\n",NumJumps);
   int Err = xorGetKey(NumJumps, BodyLen, KeyBuf);
   if (Err != 0)
@@ -1326,7 +1396,7 @@ void Test1(unsigned NumJumps, unsigned BodyLen)
   memcpy(Data, TESTSTR1, DLen);
   memcpy(Data2, TESTSTR1, DLen);
   OriginalPlainTextCheckSum = BufCheckSum(Data, DLen);
-  CheckSumReturnedFromEncryptor = xorEncrypt(KeyBuf, (uint8_t *)(&SaltData), KeyCheckSum, DLen, Data); // We encrypt with non-optimized version
+  CheckSumReturnedFromEncryptor = xorEncrypt(KeyBuf, SaltData, KeyCheckSum, DLen, Data); // We encrypt with non-optimized version
   if (OriginalPlainTextCheckSum != CheckSumReturnedFromEncryptor)
   {
     printf("Original Checksum %llu returned from BufChecksum fnc <> Checksum %llu returned from non-optimized encryptor\n",OriginalPlainTextCheckSum,CheckSumReturnedFromEncryptor);
@@ -1334,14 +1404,10 @@ void Test1(unsigned NumJumps, unsigned BodyLen)
   } else printf("OriginalPlainTextCheckSum %llu = CheckSumReturnedFromEncryptor %llu :: SUCCESS!\n",OriginalPlainTextCheckSum,CheckSumReturnedFromEncryptor);
   // Now let's encrypt with the optimized encryptor
   
-  if (NumJumps == 2)
-    CheckSumReturnedFromEncryptor = xorEncryptHOP2(KeyBuf, (uint8_t *)(&SaltData), KeyCheckSum, DLen, Data2); 
-  else if (NumJumps == 3)
-    CheckSumReturnedFromEncryptor = xorEncryptHOP3(KeyBuf, (uint8_t *)(&SaltData), KeyCheckSum, DLen, Data2); 
-  else if (NumJumps == 4)
-    CheckSumReturnedFromEncryptor = xorEncryptHOP4(KeyBuf, (uint8_t *)(&SaltData), KeyCheckSum, DLen, Data2); 
-  else exit(-1);
-  
+  THOPEncryptorFnc EncryptorFnc = xorGetProperHOPEncryptorFnc(KeyBuf);
+  THOPDecryptorFnc DecryptorFnc = xorGetProperHOPDecryptorFnc(KeyBuf);
+    
+  CheckSumReturnedFromEncryptor = EncryptorFnc(KeyBuf, SaltData, KeyCheckSum, DLen, Data2); 
   
   if (OriginalPlainTextCheckSum != CheckSumReturnedFromEncryptor)
   {
@@ -1366,13 +1432,7 @@ void Test1(unsigned NumJumps, unsigned BodyLen)
   }
   //CheckSumReturnedFromDecryptor = xorDecrypt(K, (uint8_t *)(&SaltData), KeyCheckSum, DLen, Data);
   
-  if (NumJumps == 2)
-    CheckSumReturnedFromDecryptor = xorDecryptHOP2(K, (uint8_t *)(&SaltData), KeyCheckSum, DLen, Data);
-  else if (NumJumps == 3)
-    CheckSumReturnedFromDecryptor = xorDecryptHOP3(K, (uint8_t *)(&SaltData), KeyCheckSum, DLen, Data);
-  else if (NumJumps == 4)
-    CheckSumReturnedFromDecryptor = xorDecryptHOP4(K, (uint8_t *)(&SaltData), KeyCheckSum, DLen, Data);
-  else exit(-1);
+  CheckSumReturnedFromDecryptor = DecryptorFnc(K, SaltData, KeyCheckSum, DLen, Data);
   
   if (OriginalPlainTextCheckSum != CheckSumReturnedFromDecryptor)
   {
@@ -1388,8 +1448,66 @@ void Test1(unsigned NumJumps, unsigned BodyLen)
     printf("String: %s ... Test1 result: FAILED!!!!\n----------------------------------------\n", Data);
     exit(-1);
   }
+}
+void CommPacketTest(unsigned NumJumps, unsigned BodyLen)
+{
+  unsigned long long int DLen;
+  unsigned RawKeyLen = xorComputeKeyBufLen(BodyLen);
+  uint8_t *KeyBuf = (uint8_t *)malloc(RawKeyLen); assert (KeyBuf);
+  uint8_t Data[2048],Data2[2048];
+  char *Base64EncodedKeyStr;
+  uint32_t KeyCheckSum;
+  uint8_t SaltData[SALT_SIZE];
+  
+  GetRandomNumbers(SALT_SIZE, SaltData);  
+  printf("----------- COMM PACKETS TEST(%u Jumps) --------------\n",NumJumps);
+  int Err = xorGetKey(NumJumps, BodyLen, KeyBuf);
+  if (Err != 0)
+  {
+    printf("Couldn't create the key. Error: %d\n",Err);
+    exit(-1);
+  }
+  KeyCheckSum = xorComputeKeyCheckSum(KeyBuf);
+  Base64EncodedKeyStr = Base64Encode((const char *)KeyBuf, RawKeyLen);
+  printf("Base64 encoded key: %s\n", Base64EncodedKeyStr);
+
+  memset(&Data, 0, sizeof(Data));
+  memset(&Data2, 0, sizeof(Data2));
+  DLen = TESTSTR1_LEN; 
+  memcpy(Data, TESTSTR1, DLen);
+  
+  
+  #define PACK_ALIGNMENT 16
+  uint32_t CommPacketTotalSize = HOHHA_TOTAL_COMM_PACKET_SIZE(DLen,PACK_ALIGNMENT);
+  uint8_t *CommPacket = malloc(CommPacketTotalSize);
+  CreateHohhaCommunicationPacket2(KeyBuf, KeyCheckSum, DLen, Data, PACK_ALIGNMENT, CommPacket);
+  
+  char *Base64EncodedCommPacket = Base64Encode((const char *)CommPacket, CommPacketTotalSize);
+  printf("Encrypted communication packet: %s\n", Base64EncodedCommPacket);
+  free(Base64EncodedCommPacket);
+  
+  // Now, let's decrypt it
+  int DpRes = DecryptCommPacket(KeyBuf, KeyCheckSum, CommPacketTotalSize, CommPacket);
+  if (DpRes < 0)
+  {
+    printf("DecryptCommPacket error: %d\n", DpRes);
+    exit(-1);
+  }
+  THohhaPacketHeader *PacketHeader = (THohhaPacketHeader *)CommPacket;
+  char *PPText = (char *)(CommPacket + sizeof(THohhaPacketHeader) + PacketHeader->LeftPadding);
+  
+  if (memcmp((char *)PPText, TESTSTR1, DLen) == 0)
+  {
+    printf("String: %s ... Hohha Comm Packet Test result: SUCCESSFUL!!!!\n----------------------------------------\n", Data);
+  }
+  else {
+    printf("String: %s ... Hohha Comm Packet Test result: FAILED!!!!\n----------------------------------------\n", Data);
+    exit(-1);
+  }
+  free(CommPacket);
   //exit(-1);
 }
+
 void CircularShiftTest()
 {
   uint32_t t, Nn = (uint32_t)(0b10000000000000000000000000000010U);
@@ -1443,12 +1561,10 @@ ssize_t EncryptFile(const char *InFileName, const char *OutFileName, uint8_t *Ke
   //GetRandomNumbers(8, (uint8_t *)(&SaltData));
   // Copy key's original salt value to salt buffer
   memcpy(&SaltData, KeyBuf+SP_SALT_DATA, SALT_SIZE);
-  if (GetNumJumps(KeyBuf) == 2)
-    CheckSum = (ssize_t)xorEncryptHOP2(KeyBuf, (uint8_t *)(&SaltData), KeyCheckSum, Len, Data); 
-  else if (GetNumJumps(KeyBuf) == 3)
-    CheckSum = (ssize_t)xorEncryptHOP3(KeyBuf, (uint8_t *)(&SaltData), KeyCheckSum, Len, Data); 
-  else if (GetNumJumps(KeyBuf) == 4)
-    CheckSum = (ssize_t)xorEncryptHOP4(KeyBuf, (uint8_t *)(&SaltData), KeyCheckSum, Len, Data); 
+  
+  THOPEncryptorFnc EncryptorFnc = xorGetProperHOPEncryptorFnc(KeyBuf);
+  
+  CheckSum = (ssize_t)EncryptorFnc(KeyBuf, (uint8_t *)(&SaltData), KeyCheckSum, Len, Data); 
   
   if ((FDesc = creat(OutFileName, 700)) == -1)
   {
@@ -1502,17 +1618,9 @@ ssize_t EncryptBMPFile(const char *InFileName, const char *OutFileName, uint8_t 
   //GetRandomNumbers(8, (uint8_t *)(&SaltData));
   // Copy key's original salt value to salt buffer
   memcpy(&SaltData, KeyBuf+SP_SALT_DATA, SALT_SIZE);
-/*  if (GetNumJumps(KeyBuf) == 2)
-    CheckSum = xorEncryptHOP2(KeyBuf, (uint8_t *)(&SaltData), KeyCheckSum, Len, Data); 
-  else if (GetNumJumps(KeyBuf) == 3)
-    CheckSum = xorEncryptHOP3(KeyBuf, (uint8_t *)(&SaltData), KeyCheckSum, Len, Data); 
-  else if (GetNumJumps(KeyBuf) == 4)
-    CheckSum = xorEncryptHOP4(KeyBuf, (uint8_t *)(&SaltData), KeyCheckSum, Len, Data); 
-  else {
-    printf("Invalid number of jumps!\n");
-    exit(-1);
-  }*/
-  CheckSum = (ssize_t)xorEncrypt(KeyBuf, (uint8_t *)(&SaltData), KeyCheckSum, Len-BMP_FILE_HEADER_LEN, Data + BMP_FILE_HEADER_LEN); 
+
+  THOPEncryptorFnc EncryptorFnc = xorGetProperHOPEncryptorFnc(KeyBuf);
+  CheckSum = (ssize_t)EncryptorFnc(KeyBuf, (uint8_t *)(&SaltData), KeyCheckSum, Len-BMP_FILE_HEADER_LEN, Data + BMP_FILE_HEADER_LEN); 
   if ((FDesc = creat(OutFileName, 777)) == -1)
   {
     printf("Error in creating output file!\n");
@@ -1583,58 +1691,75 @@ void CreateVisualProofs()
 {
   TestEncryptBMPFile("/home/ikizir/Downloads/allzero.bmp", "/home/ikizir/Downloads/allzero_enc_2J_64.bmp", 2, 64);
   TestEncryptBMPFile("/home/ikizir/Downloads/allzero.bmp", "/home/ikizir/Downloads/allzero_enc_3J_64.bmp", 3, 64);
+  TestEncryptBMPFile("/home/ikizir/Downloads/allzero.bmp", "/home/ikizir/Downloads/allzero_enc_4J_64.bmp", 4, 64);
   
   TestEncryptBMPFile("/home/ikizir/Downloads/allzero.bmp", "/home/ikizir/Downloads/allzero_enc_2J_128.bmp", 2, 128);
   TestEncryptBMPFile("/home/ikizir/Downloads/allzero.bmp", "/home/ikizir/Downloads/allzero_enc_3J_128.bmp", 3, 128);
+  TestEncryptBMPFile("/home/ikizir/Downloads/allzero.bmp", "/home/ikizir/Downloads/allzero_enc_4J_128.bmp", 4, 128);
   
   TestEncryptBMPFile("/home/ikizir/Downloads/allzero.bmp", "/home/ikizir/Downloads/allzero_enc_2J_256.bmp", 2, 256);
   TestEncryptBMPFile("/home/ikizir/Downloads/allzero.bmp", "/home/ikizir/Downloads/allzero_enc_3J_256.bmp", 3, 256);
+  TestEncryptBMPFile("/home/ikizir/Downloads/allzero.bmp", "/home/ikizir/Downloads/allzero_enc_4J_256.bmp", 4, 256);
   
   TestEncryptBMPFile("/home/ikizir/Downloads/panda.bmp", "/home/ikizir/Downloads/panda_enc_2J_64.bmp", 2, 64);
   TestEncryptBMPFile("/home/ikizir/Downloads/panda.bmp", "/home/ikizir/Downloads/panda_enc_3J_64.bmp", 3, 64);
+  TestEncryptBMPFile("/home/ikizir/Downloads/panda.bmp", "/home/ikizir/Downloads/panda_enc_4J_64.bmp", 4, 64);
   
   TestEncryptBMPFile("/home/ikizir/Downloads/panda.bmp", "/home/ikizir/Downloads/panda_enc_2J_128.bmp", 2, 128);
   TestEncryptBMPFile("/home/ikizir/Downloads/panda.bmp", "/home/ikizir/Downloads/panda_enc_3J_128.bmp", 3, 128);
+  TestEncryptBMPFile("/home/ikizir/Downloads/panda.bmp", "/home/ikizir/Downloads/panda_enc_4J_128.bmp", 4, 128);
   
   TestEncryptBMPFile("/home/ikizir/Downloads/panda.bmp", "/home/ikizir/Downloads/panda_enc_2J_256.bmp", 2, 256);
   TestEncryptBMPFile("/home/ikizir/Downloads/panda.bmp", "/home/ikizir/Downloads/panda_enc_3J_256.bmp", 3, 256);
+  TestEncryptBMPFile("/home/ikizir/Downloads/panda.bmp", "/home/ikizir/Downloads/panda_enc_4J_256.bmp", 4, 256);
   
   TestEncryptBMPFile("/home/ikizir/Downloads/Bitmap1.bmp", "/home/ikizir/Downloads/Bitmap1_enc_2J_64.bmp", 2, 64);
   TestEncryptBMPFile("/home/ikizir/Downloads/Bitmap1.bmp", "/home/ikizir/Downloads/Bitmap1_enc_3J_64.bmp", 3, 64);
+  TestEncryptBMPFile("/home/ikizir/Downloads/Bitmap1.bmp", "/home/ikizir/Downloads/Bitmap1_enc_4J_64.bmp", 4, 64);
   
   TestEncryptBMPFile("/home/ikizir/Downloads/Bitmap1.bmp", "/home/ikizir/Downloads/Bitmap1_enc_2J_128.bmp", 2, 128);
   TestEncryptBMPFile("/home/ikizir/Downloads/Bitmap1.bmp", "/home/ikizir/Downloads/Bitmap1_enc_3J_128.bmp", 3, 128);
+  TestEncryptBMPFile("/home/ikizir/Downloads/Bitmap1.bmp", "/home/ikizir/Downloads/Bitmap1_enc_4J_128.bmp", 4, 128);
   
   TestEncryptBMPFile("/home/ikizir/Downloads/Bitmap1.bmp", "/home/ikizir/Downloads/Bitmap1_enc_2J_256.bmp", 2, 256);
   TestEncryptBMPFile("/home/ikizir/Downloads/Bitmap1.bmp", "/home/ikizir/Downloads/Bitmap1_enc_3J_256.bmp", 3, 256);
+  TestEncryptBMPFile("/home/ikizir/Downloads/Bitmap1.bmp", "/home/ikizir/Downloads/Bitmap1_enc_4J_256.bmp", 4, 256);
   
   TestEncryptBMPFile("/home/ikizir/Downloads/Viking.bmp", "/home/ikizir/Downloads/Viking_enc_2J_64.bmp", 2, 64);
   TestEncryptBMPFile("/home/ikizir/Downloads/Viking.bmp", "/home/ikizir/Downloads/Viking_enc_3J_64.bmp", 3, 64);
+  TestEncryptBMPFile("/home/ikizir/Downloads/Viking.bmp", "/home/ikizir/Downloads/Viking_enc_4J_64.bmp", 4, 64);
   
   TestEncryptBMPFile("/home/ikizir/Downloads/Viking.bmp", "/home/ikizir/Downloads/Viking_enc_2J_128.bmp", 2, 128);
   TestEncryptBMPFile("/home/ikizir/Downloads/Viking.bmp", "/home/ikizir/Downloads/Viking_enc_3J_128.bmp", 3, 128);
+  TestEncryptBMPFile("/home/ikizir/Downloads/Viking.bmp", "/home/ikizir/Downloads/Viking_enc_4J_128.bmp", 4, 128);
   
   TestEncryptBMPFile("/home/ikizir/Downloads/Viking.bmp", "/home/ikizir/Downloads/Viking_enc_2J_256.bmp", 2, 256);
   TestEncryptBMPFile("/home/ikizir/Downloads/Viking.bmp", "/home/ikizir/Downloads/Viking_enc_3J_256.bmp", 3, 256);
+  TestEncryptBMPFile("/home/ikizir/Downloads/Viking.bmp", "/home/ikizir/Downloads/Viking_enc_4J_256.bmp", 4, 256);
   
   TestEncryptBMPFile("/home/ikizir/Downloads/B.bmp", "/home/ikizir/Downloads/B_enc_2J_64.bmp", 2, 64);
   TestEncryptBMPFile("/home/ikizir/Downloads/B.bmp", "/home/ikizir/Downloads/B_enc_3J_64.bmp", 3, 64);
+  TestEncryptBMPFile("/home/ikizir/Downloads/B.bmp", "/home/ikizir/Downloads/B_enc_4J_64.bmp", 4, 64);
   
   TestEncryptBMPFile("/home/ikizir/Downloads/B.bmp", "/home/ikizir/Downloads/B_enc_2J_128.bmp", 2, 128);
   TestEncryptBMPFile("/home/ikizir/Downloads/B.bmp", "/home/ikizir/Downloads/B_enc_3J_128.bmp", 3, 128);
+  TestEncryptBMPFile("/home/ikizir/Downloads/B.bmp", "/home/ikizir/Downloads/B_enc_4J_128.bmp", 4, 128);
   
   TestEncryptBMPFile("/home/ikizir/Downloads/B.bmp", "/home/ikizir/Downloads/B_enc_2J_256.bmp", 2, 256);
   TestEncryptBMPFile("/home/ikizir/Downloads/B.bmp", "/home/ikizir/Downloads/B_enc_3J_256.bmp", 3, 256);
+  TestEncryptBMPFile("/home/ikizir/Downloads/B.bmp", "/home/ikizir/Downloads/B_enc_4J_256.bmp", 4, 256);
   
   TestEncryptBMPFile("/home/ikizir/Downloads/penguen.bmp", "/home/ikizir/Downloads/penguen_enc_2J_64.bmp", 2, 64);
   TestEncryptBMPFile("/home/ikizir/Downloads/penguen.bmp", "/home/ikizir/Downloads/penguen_enc_3J_64.bmp", 3, 64);
+  TestEncryptBMPFile("/home/ikizir/Downloads/penguen.bmp", "/home/ikizir/Downloads/penguen_enc_4J_64.bmp", 4, 64);
   
   TestEncryptBMPFile("/home/ikizir/Downloads/penguen.bmp", "/home/ikizir/Downloads/penguen_enc_2J_128.bmp", 2, 128);
   TestEncryptBMPFile("/home/ikizir/Downloads/penguen.bmp", "/home/ikizir/Downloads/penguen_enc_3J_128.bmp", 3, 128);
+  TestEncryptBMPFile("/home/ikizir/Downloads/penguen.bmp", "/home/ikizir/Downloads/penguen_enc_4J_128.bmp", 4, 128);
   
   TestEncryptBMPFile("/home/ikizir/Downloads/penguen.bmp", "/home/ikizir/Downloads/penguen_enc_2J_256.bmp", 2, 256);
   TestEncryptBMPFile("/home/ikizir/Downloads/penguen.bmp", "/home/ikizir/Downloads/penguen_enc_3J_256.bmp", 3, 256);
-  
+  TestEncryptBMPFile("/home/ikizir/Downloads/penguen.bmp", "/home/ikizir/Downloads/penguen_enc_4J_256.bmp", 4, 256);
 }
 
 
@@ -1642,11 +1767,13 @@ int main()
 {
   uint32_t BodyLen = 128;
 
-  //printf("CRC: %u\n", digital_crc32((uint8_t *)"Ismail", 7));
-  //printf("CRC: %u\n", digital_crc32((uint8_t *)"Hasan", 5));
-  //printf("CRC: %u\n", digital_crc32((uint8_t *)"Ismail", 7));
-  
+  //printf("CRC: %u\n", digital_crc32((uint8_t *)"A", 1));
+  //printf("CRC: %u\n", digital_crc32((uint8_t *)"Ismail", 6));
   Test1(2, BodyLen);
+  CommPacketTest(3, 128);
+  //exit(-1);
+  
+  
   CreateVisualProofs();
 //  exit(-1);
   
@@ -1690,23 +1817,23 @@ int main()
          "------------------- ------------------- ------------------- -------------------- --------------------\n"
          "%19.2f %19.2f %19.2f %19.2f %19.2f\n\n", Average16, Average64, Average256, Average1024, Average8192);
   */
-  Average16H2 = BenchmarkHOP2(2, BodyLen, 16, NumIterations);
-  Average64H2 = BenchmarkHOP2(2, BodyLen, 64, NumIterations);
-  Average256H2 = BenchmarkHOP2(2, BodyLen, 256, NumIterations);
-  Average1024H2 = BenchmarkHOP2(2, BodyLen, 1024, NumIterations);
-  Average8192H2 = BenchmarkHOP2(2, BodyLen, 8192, NumIterations);
+  Average16H2 = BenchmarkHOP(2, BodyLen, 16, NumIterations);
+  Average64H2 = BenchmarkHOP(2, BodyLen, 64, NumIterations);
+  Average256H2 = BenchmarkHOP(2, BodyLen, 256, NumIterations);
+  Average1024H2 = BenchmarkHOP(2, BodyLen, 1024, NumIterations);
+  Average8192H2 = BenchmarkHOP(2, BodyLen, 8192, NumIterations);
   
-  Average16H3 = BenchmarkHOP3(3, BodyLen, 16, NumIterations);
-  Average64H3 = BenchmarkHOP3(3, BodyLen, 64, NumIterations);
-  Average256H3 = BenchmarkHOP3(3, BodyLen, 256, NumIterations);
-  Average1024H3 = BenchmarkHOP3(3, BodyLen, 1024, NumIterations);
-  Average8192H3 = BenchmarkHOP3(3, BodyLen, 8192, NumIterations);
+  Average16H3 = BenchmarkHOP(3, BodyLen, 16, NumIterations);
+  Average64H3 = BenchmarkHOP(3, BodyLen, 64, NumIterations);
+  Average256H3 = BenchmarkHOP(3, BodyLen, 256, NumIterations);
+  Average1024H3 = BenchmarkHOP(3, BodyLen, 1024, NumIterations);
+  Average8192H3 = BenchmarkHOP(3, BodyLen, 8192, NumIterations);
   
-  Average16H4 = BenchmarkHOP4(4, BodyLen, 16, NumIterations);
-  Average64H4 = BenchmarkHOP4(4, BodyLen, 64, NumIterations);
-  Average256H4 = BenchmarkHOP4(4, BodyLen, 256, NumIterations);
-  Average1024H4 = BenchmarkHOP4(4, BodyLen, 1024, NumIterations);
-  Average8192H4 = BenchmarkHOP4(4, BodyLen, 8192, NumIterations);
+  Average16H4 = BenchmarkHOP(4, BodyLen, 16, NumIterations);
+  Average64H4 = BenchmarkHOP(4, BodyLen, 64, NumIterations);
+  Average256H4 = BenchmarkHOP(4, BodyLen, 256, NumIterations);
+  Average1024H4 = BenchmarkHOP(4, BodyLen, 1024, NumIterations);
+  Average8192H4 = BenchmarkHOP(4, BodyLen, 8192, NumIterations);
   
   printf("\n\nMemcpy BENCHMARKS(Real life usage):\n"
          "16                  64                  256                 1024                8192               \n"
