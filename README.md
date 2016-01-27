@@ -28,3 +28,8 @@ Ismail Kizir <[ikizir@gmail.com]>
 [wiki]: https://github.com/ikizir/HohhaDynamicXOR/wiki
 [ikizir@gmail.com]: mailto:ikizir@gmail.com
 
+## Implementation for other Languages
+
+These are unofficial implementations by 3rd party developers.
+
+Javascript: https://github.com/ed770878/hohha-js 
