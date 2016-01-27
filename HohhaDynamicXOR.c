@@ -374,7 +374,14 @@ char *Base64Encode(const char* input, uint32_t inputlen)
   return output;
 }
 
+char *Base64DecodeLen(const char* input, uint32_t *outputLen);
+
 char *Base64Decode(const char* input)
+{
+	return Base64DecodeLen(input, NULL);
+}
+
+char *Base64DecodeLen(const char* input, uint32_t *outputLen)
 {
   /* set up a destination buffer large enough to hold the encoded data */
   unsigned ilen = strlen(input);
@@ -398,9 +405,11 @@ char *Base64Decode(const char* input)
   /* we want to print the decoded data, so null-terminate it: */
   *c = 0;
 
+  if (outputLen)
+	  *outputLen = c - output;
+
   return output;
 }
-
 
 /* ---------------------------- BASE64 ENCODE/DECODE FUNCTIONS ENDS HERE -------------------------------------
  */
