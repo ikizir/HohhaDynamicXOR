@@ -32,4 +32,4 @@ Ismail Kizir <[ikizir@gmail.com]>
 
 These are unofficial implementations by 3rd party developers.
 
-Javascript: https://github.com/ed770878/hohha-js : The autohor hasn't implemented Hohha Communication Format. We don't recommend using it for real life applications.
+Javascript: https://github.com/ed770878/hohha-js : The author hasn't implemented Hohha Communication Format. We don't recommend using it for real life applications.
