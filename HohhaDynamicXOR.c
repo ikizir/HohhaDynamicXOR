@@ -374,14 +374,7 @@ char *Base64Encode(const char* input, uint32_t inputlen)
   return output;
 }
 
-char *Base64DecodeLen(const char* input, uint32_t *outputLen);
-
 char *Base64Decode(const char* input)
-{
-	return Base64DecodeLen(input, NULL);
-}
-
-char *Base64DecodeLen(const char* input, uint32_t *outputLen)
 {
   /* set up a destination buffer large enough to hold the encoded data */
   unsigned ilen = strlen(input);
@@ -405,11 +398,9 @@ char *Base64DecodeLen(const char* input, uint32_t *outputLen)
   /* we want to print the decoded data, so null-terminate it: */
   *c = 0;
 
-  if (outputLen)
-	  *outputLen = c - output;
-
   return output;
 }
+
 
 /* ---------------------------- BASE64 ENCODE/DECODE FUNCTIONS ENDS HERE -------------------------------------
  */
@@ -532,8 +523,10 @@ unsigned int digital_crc32(uint8_t *buf, size_t len)
 
 /* ------------------------- END CRC UTILITY FUNCTIONS ----------------- */
 
-
-#define RANDOM_BUF_SIZE 8192
+// Note that reading from /dev/urandom is a slow operation
+// For real life application, we recommend to use /dev/urandom for only key generation and another, faster, cryptographically secure random generator for random padding data
+// If you increase RANDOM_BUF_SIZE, you will see dramatic speed gains on Packet benchmarks
+#define RANDOM_BUF_SIZE 65536
 uint8_t RandomBuf[RANDOM_BUF_SIZE];
 
 uint32_t RandomBufStartPos=999999999; // It must be a number greater than RANDOM_BUF_SIZE for initialization
@@ -593,6 +586,11 @@ uint64_t GetRandomUInt64(void)
   RandomBufStartPos += sizeof(uint64_t);
   return *((uint64_t *)(RandomBuf + RandomBufStartPos-sizeof(uint64_t)));
 }
+void GetRandomNumbersForPadding(uint32_t ByteCount, uint8_t *Buffer)
+{ // You can use another faster random generator here
+  GetRandomNumbers(ByteCount, Buffer);
+}
+
 // Standart C has not ROL or ROR function, but most modern cpus has instructions for circular shift operations
 // This is a quick and dirty code for standart C versions and Intel Family cpu assembler optimized versions
 
@@ -1171,6 +1169,7 @@ static inline THOPDecryptorFnc xorGetProperHOPDecryptorFnc(uint8_t *Key)
 
 // Hohha communication header structure:
 // 1 byte AlignedLenSize which describes the size of the variable which describes the length of the plaintext body, in bytes
+// 1 byte dummy random byte(against known plaintext attacks)
 // 8 bytes packet salt value for encryption
 // 4 bytes -> Plaintext checksum
 // 1 byte Left padding(number of random characters) before the real plaintext or ciphertext
@@ -1182,6 +1181,7 @@ typedef struct __attribute__((__packed__)) {
   //   Next highest 2 bits(&64 &32) : RESERVED FOR COMPRESSION TYPE! NOT IMPLEMENTED YET!
   //   Low 3 bits(&7) : 1 --> Aligned length is between 0..255; 2-> 255..65535 3->0..2^24-1 4-> 65536..2^32-1 THIS VALUE IS NEVER ENCRYPTED
   uint8_t AlignedLenSize; 
+  uint8_t Dummy; // One byte dummy data. Must be set to a random number
   uint8_t Salt[SALT_SIZE]; // Salt value unique for packet
   uint32_t PlaintextCRC; // Plaintext CRC value to check integrity of the packet LITTLE ENDIAN
   uint8_t Padding; // LeftPad + RightPad 
@@ -1278,6 +1278,7 @@ void CreateHohhaCommunicationPacket2(uint8_t *K, uint32_t KeyCheckSum, size_t In
   size_t LPad;
   
   THohhaPacketHeader *PacketHeader = (THohhaPacketHeader *)OutBuf;
+  PacketHeader->Dummy = GetRandomUInt8();
   uint8_t *OBufStart = OutBuf + HHLEN;
   SetHeaderAlignedLenValue((THohhaPacketHeader *)OutBuf, AlignedDataLen);
   LPad = (AlignedDataLen-InDataLen) >> 1;
@@ -1287,7 +1288,7 @@ void CreateHohhaCommunicationPacket2(uint8_t *K, uint32_t KeyCheckSum, size_t In
   memcpy(OBufStart + LPad, InBuf, InDataLen);
   
   // First, let's create a new salt value unique for this transmission and copy original salt data to a buffer
-  GetRandomNumbers(SALT_SIZE, (uint8_t *)&(PacketHeader->Salt));
+  GetRandomNumbersForPadding(SALT_SIZE, (uint8_t *)&(PacketHeader->Salt));
   // Fill padding data if necessary
   if (LPad)
   {
@@ -1315,6 +1316,7 @@ void CreateHohhaCommunicationPacket2(uint8_t *K, uint32_t KeyCheckSum, size_t In
   
   // Now, let's encrypt our data
   PacketHeader->PlaintextCRC = htole32(EncryptorFnc(K, PacketHeader->Salt, KeyCheckSum, AlignedDataLen, OBufStart));
+  //printf("PacketHeader->PlaintextCRC: %u\n",PacketHeader->PlaintextCRC);
   // We encrypted our packet. Now, let's encrypt packet header with original salt and key. But we don't encrypt header's first byte(AlignedLenSize)
   EncryptorFnc(K, OriginalSalt, KeyCheckSum, HHLEN-(1+AlignedLenSize), OutBuf+1);
   // Set encrypted flag to TRUE
@@ -1548,6 +1550,50 @@ double BenchmarkHOP(uint8_t NumJumps, uint32_t BodyLen, uint32_t TestSampleLengt
     IncByOne(Data, TestSampleLength);
     EncryptorFnc(KeyBuf, (uint8_t *)(&SaltData), KeyCheckSum, TestSampleLength, Data);
     TotalProcessedBytes += TestSampleLength;
+  }
+  double Average = PrintElapsedTime(&StartTime,TotalProcessedBytes);
+  free(Data);
+  free(KeyBuf);
+  return Average;
+}
+
+double BenchmarkPack(uint8_t NumJumps, uint32_t BodyLen, uint32_t TestSampleLength, uint32_t NumIterations)
+{
+  uint8_t *KeyBuf = (uint8_t *)malloc(xorComputeKeyBufLen(BodyLen)); assert (KeyBuf);
+  uint8_t *Data = CreateDataBuf(TestSampleLength);
+  unsigned long long int TotalProcessedBytes = 0;
+  uint32_t t;
+  uint32_t KeyCheckSum;
+  uint8_t SaltData[SALT_SIZE]; 
+  
+  
+  assert(KeyBuf);
+  printf("BenchmarkHop\n\tNumJumps: %u\n\tBodyLen: %u\n\tTestSampleLength: %u\n\tNumIterations: %u ... ",NumJumps,BodyLen,TestSampleLength,NumIterations);  
+  
+  GetRandomNumbers(SALT_SIZE, SaltData);
+  GetRandomNumbers(TestSampleLength, Data);
+  int Err = xorGetKey(NumJumps, BodyLen, KeyBuf);
+  if (Err != 0)
+  {
+    printf("Couldn't create the key. Error: %d\n",Err);
+    exit(-1);
+  }
+  KeyCheckSum = xorComputeKeyCheckSum(KeyBuf);
+  xorAnalyzeKey(KeyBuf);
+  struct timeval StartTime;
+  gettimeofday (&StartTime, NULL); 
+  
+  
+  #define PACK_ALIGNMENT_BENCHMARK 16
+  
+  uint8_t *Packet;
+  
+  for (t=0; t<NumIterations; t++)
+  {
+    IncByOne(Data, TestSampleLength);
+    Packet = CreateHohhaCommunicationPacket(KeyBuf, KeyCheckSum, TestSampleLength, Data, PACK_ALIGNMENT_BENCHMARK);
+    TotalProcessedBytes += TestSampleLength;
+    free(Packet);
   }
   double Average = PrintElapsedTime(&StartTime,TotalProcessedBytes);
   free(Data);
@@ -2086,6 +2132,44 @@ int main()
          "------------------- ------------------- ------------------- -------------------- --------------------\n"
          "%19.2f %19.2f %19.2f %19.2f %19.2f\n\n", Average16, Average64, Average256, Average1024, Average8192);
   */
+  
+  Average16H2 = BenchmarkPack(2, BodyLen, 16, NumIterations);
+  Average64H2 = BenchmarkPack(2, BodyLen, 64, NumIterations);
+  Average256H2 = BenchmarkPack(2, BodyLen, 256, NumIterations);
+  Average1024H2 = BenchmarkPack(2, BodyLen, 1024, NumIterations);
+  Average8192H2 = BenchmarkPack(2, BodyLen, 8192, NumIterations);
+  
+  Average16H3 = BenchmarkPack(3, BodyLen, 16, NumIterations);
+  Average64H3 = BenchmarkPack(3, BodyLen, 64, NumIterations);
+  Average256H3 = BenchmarkPack(3, BodyLen, 256, NumIterations);
+  Average1024H3 = BenchmarkPack(3, BodyLen, 1024, NumIterations);
+  Average8192H3 = BenchmarkPack(3, BodyLen, 8192, NumIterations);
+  
+  Average16H4 = BenchmarkPack(4, BodyLen, 16, NumIterations);
+  Average64H4 = BenchmarkPack(4, BodyLen, 64, NumIterations);
+  Average256H4 = BenchmarkPack(4, BodyLen, 256, NumIterations);
+  Average1024H4 = BenchmarkPack(4, BodyLen, 1024, NumIterations);
+  Average8192H4 = BenchmarkPack(4, BodyLen, 8192, NumIterations);
+  
+  printf("\n\nPacket construction BENCHMARKS(Real life usage):\n"
+         "16                  64                  256                 1024                8192               \n"
+         "------------------- ------------------- ------------------- ------------------- -------------------\n"
+         "%19.2f %19.2f %19.2f %19.2f %19.2f\n\n", Average16M, Average64M, Average256M, Average1024M, Average8192M);
+  printf("\n\n2-Jumps BENCHMARKS(Real life usage):\n"
+         "16                  64                  256                 1024                8192               \n"
+         "------------------- ------------------- ------------------- ------------------- -------------------\n"
+         "%19.2f %19.2f %19.2f %19.2f %19.2f\n\n", Average16H2, Average64H2, Average256H2, Average1024H2, Average8192H2);
+  printf("\n\n3-Jumps BENCHMARKS(Real life usage):\n"
+         "16                  64                  256                 1024                8192               \n"
+         "------------------- ------------------- ------------------- ------------------- -------------------\n"
+         "%19.2f %19.2f %19.2f %19.2f %19.2f\n\n", Average16H3, Average64H3, Average256H3, Average1024H3, Average8192H3);
+  printf("\n\n4-Jumps BENCHMARKS(Real life usage):\n"
+         "16                  64                  256                 1024                8192               \n"
+         "------------------- ------------------- ------------------- ------------------- -------------------\n"
+         "%19.2f %19.2f %19.2f %19.2f %19.2f\n\n", Average16H4, Average64H4, Average256H4, Average1024H4, Average8192H4);
+  
+  
+  
   Average16H2 = BenchmarkHOP(2, BodyLen, 16, NumIterations);
   Average64H2 = BenchmarkHOP(2, BodyLen, 64, NumIterations);
   Average256H2 = BenchmarkHOP(2, BodyLen, 256, NumIterations);
@@ -2104,7 +2188,7 @@ int main()
   Average1024H4 = BenchmarkHOP(4, BodyLen, 1024, NumIterations);
   Average8192H4 = BenchmarkHOP(4, BodyLen, 8192, NumIterations);
   
-  printf("\n\nMemcpy BENCHMARKS(Real life usage):\n"
+  printf("\n\nRaw encryption benchmarks:\n"
          "16                  64                  256                 1024                8192               \n"
          "------------------- ------------------- ------------------- ------------------- -------------------\n"
          "%19.2f %19.2f %19.2f %19.2f %19.2f\n\n", Average16M, Average64M, Average256M, Average1024M, Average8192M);
