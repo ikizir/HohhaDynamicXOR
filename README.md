@@ -28,7 +28,7 @@ Ismail Kizir <[ikizir@gmail.com]>
 [wiki]: https://github.com/ikizir/HohhaDynamicXOR/wiki
 [ikizir@gmail.com]: mailto:ikizir@gmail.com
 
-## Implementation for other Languages
+## Thirs party implementations
 
 These are unofficial implementations by 3rd party developers.
 
