@@ -622,7 +622,7 @@ char *GetBinStr(uint32_t val, char *ResBuf)
 /* ------------------------- END UTILITY FUNCTIONS ----------------- */
 
 #define SALT_SIZE 8 // LEAVE AS IT IS
-#define MAX_NUM_JUMPS 4 // If you change this limit, you must write proper hand optimized functions
+#define MAX_NUM_JUMPS 127 
 #define FALSE (0U)
 #define TRUE (!(FALSE))
 #define VERBOSE
@@ -1153,7 +1153,7 @@ static inline THOPEncryptorFnc xorGetProperHOPEncryptorFnc(uint8_t *Key)
     return &xorEncryptHOP3;
   if (GetNumJumps(Key) == 4)
     return &xorEncryptHOP4;
-  return NULL;
+  return &xorEncrypt;
 }
 static inline THOPDecryptorFnc xorGetProperHOPDecryptorFnc(uint8_t *Key)
 {
@@ -1163,7 +1163,7 @@ static inline THOPDecryptorFnc xorGetProperHOPDecryptorFnc(uint8_t *Key)
     return &xorDecryptHOP3;
   if (GetNumJumps(Key) == 4)
     return &xorDecryptHOP4;
-  return NULL;
+  return &xorDecrypt;
 }
 /* --------------------- HOHHA PROTOCOL SPECIFIC FUNCTIONS --------------- */
 
@@ -1212,16 +1212,16 @@ static inline unsigned int GetCommHeaderLenByHeader(THohhaPacketHeader *Hdr)
 {
   return GetCommHeaderLenByAlignedLenSize(Hdr->AlignedLenSize & 7);
 }
-#define HOHHA_TOTAL_COMM_PACKET_SIZE(DataSize,DataAlignment) ((ALIGN_TO(DataSize,DataAlignment)) + GetCommHeaderLenByAlignedLen(DataSize))
+#define HOHHA_TOTAL_COMM_PACKET_SIZE(DataSize,DataAlignment) ((ALIGN_TO((DataSize)+1,DataAlignment)) + GetCommHeaderLenByAlignedLen((ALIGN_TO((DataSize)+1,DataAlignment))))
 #define HOHHA_TOTAL_COMM_PACKET_SIZE_WITHOUT_ENCRYPTION(DataSize) ((DataSize) + GetCommHeaderLenByAlignedLen(DataSize))
 // This function sets the exact ciphertext or plaintext length on the hohha communication header
-static inline void SetHeaderAlignedLenValue(THohhaPacketHeader *PacketHeader, unsigned int AlignedDataLen)
+static inline void SetHeaderAlignedLenValue(THohhaPacketHeader *PacketHeader, size_t AlignedDataLen)
 {
   uint8_t AlignedLenSize = GetAlignedLenSize(AlignedDataLen);
   
   PacketHeader->AlignedLenSize = AlignedLenSize;
   if (AlignedLenSize == 1)
-    PacketHeader->AlignedLen[0] = AlignedDataLen;
+    PacketHeader->AlignedLen[0] = (uint8_t)AlignedDataLen;
   else if (AlignedLenSize == 2)
   {
     PacketHeader->AlignedLen[0] = (uint8_t)(AlignedDataLen >> 8);
@@ -1250,13 +1250,13 @@ static inline ssize_t GetHeaderAlignedLenValue(THohhaPacketHeader *PacketHeader)
     return PacketHeader->AlignedLen[0];
   
   if (V == 2)
-    return ((uint32_t)(PacketHeader->AlignedLen[0]) << 8) | PacketHeader->AlignedLen[1];
+    return ((size_t)(PacketHeader->AlignedLen[0]) << 8) | PacketHeader->AlignedLen[1];
   
   if (V == 3)
-    return ((uint32_t)(PacketHeader->AlignedLen[0]) << 16) | ((uint32_t)(PacketHeader->AlignedLen[1]) << 8) | PacketHeader->AlignedLen[2];
+    return ((size_t)(PacketHeader->AlignedLen[0]) << 16) | ((size_t)(PacketHeader->AlignedLen[1]) << 8) | PacketHeader->AlignedLen[2];
   
   if (V == 4)
-    return ((uint32_t)(PacketHeader->AlignedLen[0]) << 24) | ((uint32_t)(PacketHeader->AlignedLen[1]) << 16) | ((uint32_t)(PacketHeader->AlignedLen[2]) << 8) | PacketHeader->AlignedLen[3];
+    return ((size_t)(PacketHeader->AlignedLen[0]) << 24) | ((size_t)(PacketHeader->AlignedLen[1]) << 16) | ((size_t)(PacketHeader->AlignedLen[2]) << 8) | PacketHeader->AlignedLen[3];
   
   return -1;
 }
@@ -1271,48 +1271,35 @@ void CreateHohhaCommunicationPacket2(uint8_t *K, uint32_t KeyCheckSum, size_t In
   }
   
   uint8_t *OriginalSalt = K + SP_SALT_DATA;
-  size_t AlignedDataLen = ALIGN_TO(InDataLen,DataAlignment);
+  size_t AlignedDataLen = ALIGN_TO(InDataLen+1,DataAlignment);
   THOPEncryptorFnc EncryptorFnc = xorGetProperHOPEncryptorFnc(K);
-  uint8_t AlignedLenSize = GetAlignedLenSize(InDataLen);
+  uint8_t AlignedLenSize = GetAlignedLenSize(AlignedDataLen);
   size_t HHLEN = GetCommHeaderLenByAlignedLenSize(AlignedLenSize);
-  size_t LPad;
+  uint8_t RPad;
+  ssize_t LPad;
   
   THohhaPacketHeader *PacketHeader = (THohhaPacketHeader *)OutBuf;
   PacketHeader->Dummy = GetRandomUInt8();
   uint8_t *OBufStart = OutBuf + HHLEN;
   SetHeaderAlignedLenValue((THohhaPacketHeader *)OutBuf, AlignedDataLen);
-  LPad = (AlignedDataLen-InDataLen) >> 1;
   PacketHeader->Padding = (uint8_t)(AlignedDataLen-InDataLen);
+  RPad = PacketHeader->Padding >> 1;
+  LPad = PacketHeader->Padding - RPad;
   
-  // Now, let's copy our plaintext to new packet
-  memcpy(OBufStart + LPad, InBuf, InDataLen);
   
   // First, let's create a new salt value unique for this transmission and copy original salt data to a buffer
-  GetRandomNumbersForPadding(SALT_SIZE, (uint8_t *)&(PacketHeader->Salt));
+  GetRandomNumbers(SALT_SIZE, (uint8_t *)&(PacketHeader->Salt));
   // Fill padding data if necessary
   if (LPad)
   {
-    uint8_t *dp = OBufStart;
-    uint32_t PadVal = GetRandomUInt32();
-    uint32_t R = LPad;
-    
-    // We put left padding characters
-    while (R--)
-    {
-      PadVal = (214013*PadVal+2531011);
-      *dp = (uint8_t)((PadVal>>16)&0xff);
-      ++dp;
-    }
+    GetRandomNumbersForPadding(LPad, OBufStart);
     // Then, we put right padding characters if necessary
-    R = AlignedDataLen - (LPad + InDataLen);
-    dp = OBufStart + LPad + InDataLen;
-    while (R--)
-    {
-      PadVal = (214013*PadVal+2531011);
-      *dp = (uint8_t)((PadVal>>16)&0xff);
-      ++dp;
-    }
+    if (RPad)
+      GetRandomNumbersForPadding(RPad, OBufStart + LPad + InDataLen);
   }
+  
+  // Now, let's copy our plaintext to new packet
+  memcpy(OBufStart + LPad, InBuf, InDataLen);
   
   // Now, let's encrypt our data
   PacketHeader->PlaintextCRC = htole32(EncryptorFnc(K, PacketHeader->Salt, KeyCheckSum, AlignedDataLen, OBufStart));
@@ -1333,10 +1320,7 @@ uint8_t *CreateHohhaCommunicationPacket(uint8_t *K, uint32_t KeyCheckSum, size_t
     return NULL;
   }
   
-  size_t AlignedDataLen = ALIGN_TO(InDataLen,DataAlignment);
-  uint8_t AlignedLenSize = GetAlignedLenSize(InDataLen);
-  size_t HHLEN = GetCommHeaderLenByAlignedLenSize(AlignedLenSize);
-  uint8_t *OutBuf = malloc(AlignedDataLen + HHLEN);
+  uint8_t *OutBuf = malloc(HOHHA_TOTAL_COMM_PACKET_SIZE(InDataLen, DataAlignment));
   
   if (OutBuf)
     CreateHohhaCommunicationPacket2(K, KeyCheckSum, InDataLen, InBuf, DataAlignment, OutBuf);
@@ -1416,7 +1400,7 @@ uint8_t *DecryptCommPacket(uint8_t *K, uint32_t KeyCheckSum, size_t TotalPacketL
   // Then, we must decrypt the packet with salt value obtained from header
   PlaintextCRC = htole32(DecryptorFnc(K, PacketHeader->Salt, KeyCheckSum, *PlainTextLen, InOutBuf + HHLEN));
   // Now, let's compute exact plaintext size. Because *PlainTextLen still contains aligned data length
-  size_t LeftPad = PacketHeader->Padding >> 1;
+  size_t LeftPad = PacketHeader->Padding - (PacketHeader->Padding >> 1);
   //size_t RightPad = PacketHeader->Padding - LeftPad;
   *PlainTextLen -= PacketHeader->Padding;
   //printf("Real data size: %lld Pad: %u Decrypted data from encrypted packet:::  %s\n",(long long int)(*PlainTextLen), PacketHeader->Padding, InOutBuf+HHLEN+((THohhaPacketHeader *)InOutBuf)->LeftPadding);
@@ -1818,7 +1802,32 @@ void CommPacketTest(unsigned NumJumps, unsigned BodyLen)
   }
   free(CommPacket);
   
+  // Variable length packets test
   
+  uint8_t *EncPack;
+  DLen = 0;
+  while (DLen < 2048)
+  {
+    Data[DLen] = (uint8_t)(DLen & 255);
+    DLen++;
+    EncPack = CreateHohhaCommunicationPacket(KeyBuf, KeyCheckSum, DLen, Data, 16);
+    if (!EncPack)
+    {
+      printf("CreateHohhaCommunicationPacket FAILED!");
+      exit(-1);
+    }
+    PPText = DecryptCommPacket(KeyBuf, KeyCheckSum, HOHHA_TOTAL_COMM_PACKET_SIZE(DLen,16), EncPack, &DpRes);
+    if (!PPText || DpRes < 0)
+    {
+      printf("DecryptCommPacket error: %lld. DLen: %lld\n", (long long int)DpRes, (long long int)DLen);
+      exit(-1);
+    }
+    if (memcmp((char *)PPText, Data, DLen) != 0)
+    {
+      printf("DecryptCommPacket error: ORIGINAL DATA AND DECRYPTED DATA ARE NOT SAME! DLen: %lld\n", (long long int)DLen);
+    }
+    free(EncPack);
+  }
   //exit(-1);
 }
 
@@ -2097,7 +2106,7 @@ int main()
   //D1();
   Test1(2, BodyLen);
   Test1(3, BodyLen);
-  Test1(4, BodyLen);
+  Test1(11, BodyLen);
   //Test1(4, BodyLen);
   //Test1(5, BodyLen);
   
@@ -2192,15 +2201,15 @@ int main()
          "16                  64                  256                 1024                8192               \n"
          "------------------- ------------------- ------------------- ------------------- -------------------\n"
          "%19.2f %19.2f %19.2f %19.2f %19.2f\n\n", Average16M, Average64M, Average256M, Average1024M, Average8192M);
-  printf("\n\n2-Jumps BENCHMARKS(Real life usage):\n"
+  printf("\n\n2-Jumps BENCHMARKS:\n"
          "16                  64                  256                 1024                8192               \n"
          "------------------- ------------------- ------------------- ------------------- -------------------\n"
          "%19.2f %19.2f %19.2f %19.2f %19.2f\n\n", Average16H2, Average64H2, Average256H2, Average1024H2, Average8192H2);
-  printf("\n\n3-Jumps BENCHMARKS(Real life usage):\n"
+  printf("\n\n3-Jumps BENCHMARKS:\n"
          "16                  64                  256                 1024                8192               \n"
          "------------------- ------------------- ------------------- ------------------- -------------------\n"
          "%19.2f %19.2f %19.2f %19.2f %19.2f\n\n", Average16H3, Average64H3, Average256H3, Average1024H3, Average8192H3);
-  printf("\n\n4-Jumps BENCHMARKS(Real life usage):\n"
+  printf("\n\n4-Jumps BENCHMARKS:\n"
          "16                  64                  256                 1024                8192               \n"
          "------------------- ------------------- ------------------- ------------------- -------------------\n"
          "%19.2f %19.2f %19.2f %19.2f %19.2f\n\n", Average16H4, Average64H4, Average256H4, Average1024H4, Average8192H4);
