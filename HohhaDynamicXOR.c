@@ -563,7 +563,15 @@ void GetRandomNumbers(uint32_t ByteCount, uint8_t *Buffer)
   }
   if (RANDOM_BUF_SIZE < RandomBufStartPos+ByteCount)
     RandomizeBuffer();
-  memcpy(Buffer, RandomBuf + RandomBufStartPos, ByteCount);
+  //memcpy(Buffer, RandomBuf + RandomBufStartPos, ByteCount);
+  unsigned int t;
+  uint8_t *dp = Buffer, *sp = RandomBuf + RandomBufStartPos;
+  for (t=0; t<ByteCount; t++)
+  {
+    *dp = *sp;
+    ++dp;
+    ++sp;
+  }
   RandomBufStartPos += ByteCount;
 }
 uint8_t GetRandomUInt8(void)
@@ -588,6 +596,7 @@ uint64_t GetRandomUInt64(void)
 }
 void GetRandomNumbersForPadding(uint32_t ByteCount, uint8_t *Buffer)
 { // You can use another faster random generator here
+  // For IOS, we can simply use arc4random_buf(void *buf, size_t nbytes); function
   GetRandomNumbers(ByteCount, Buffer);
 }
 
@@ -627,9 +636,6 @@ char *GetBinStr(uint32_t val, char *ResBuf)
 #define TRUE (!(FALSE))
 #define VERBOSE
 
-/* Function used to determine if V is unique among the first Pos elements
- * Used by the xorGetKey function to check particle length uniqueness
- */
 #define MIN_BODY_SIZE 64
 #define MAX_BODY_SIZE 256 // DO NOT SET THIS LIMIT TO MORE THAN 256 BYTES! Or you must also change encryption&decryption code for key coverage
 
@@ -712,7 +718,7 @@ void xorAnalyzeKey(uint8_t *K)
  * when the receiver receives the packet, decrypts the new salt value with the original salt value of the key and passes that salt value to function,
  * and decrypts packet body with that salt value. This method prevents "known plaintext" attacks amongst others.
  */
-//define DISABLE_HAND_OPTIMIZED_FNCS
+#define DISABLE_HAND_OPTIMIZED_FNCS
 uint32_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
 { // Encrypts message and returns CRC32 of the PLAINTEXT!
   // SaltData is a SALT_SIZE bytes uint8 array! 
@@ -857,13 +863,18 @@ uint32_t xorDecrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOu
   return Checksum ^ 0xffffffff;
 } 
 
+typedef uint32_t (*THOPEncryptorFnc)(uint8_t *Key, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf);
+typedef uint32_t (*THOPDecryptorFnc)(uint8_t *Key, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf);
+
 #ifdef DISABLE_HAND_OPTIMIZED_FNCS
-#define xorEncryptHOP2 xorEncrypt
-#define xorDecryptHOP2 xorDecrypt
-#define xorEncryptHOP3 xorEncrypt
-#define xorEncryptHOP4 xorEncrypt
-#define xorDecryptHOP3 xorDecrypt
-#define xorDecryptHOP4 xorDecrypt
+static inline THOPEncryptorFnc xorGetProperHOPEncryptorFnc(uint8_t *Key)
+{
+  return &xorEncrypt;
+}
+static inline THOPDecryptorFnc xorGetProperHOPDecryptorFnc(uint8_t *Key)
+{
+  return &xorDecrypt;
+}
 #else
 uint32_t xorEncryptHOP2(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf)
 {
@@ -1143,8 +1154,6 @@ uint32_t xorDecryptHOP4(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
   return Checksum ^ 0xffffffff;
 } 
 
-typedef uint32_t (*THOPEncryptorFnc)(uint8_t *Key, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf);
-typedef uint32_t (*THOPDecryptorFnc)(uint8_t *Key, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOutDataLen, uint8_t *InOutBuf);
 static inline THOPEncryptorFnc xorGetProperHOPEncryptorFnc(uint8_t *Key)
 {
   if (GetNumJumps(Key) == 2)
@@ -1165,11 +1174,14 @@ static inline THOPDecryptorFnc xorGetProperHOPDecryptorFnc(uint8_t *Key)
     return &xorDecryptHOP4;
   return &xorDecrypt;
 }
+#endif
 /* --------------------- HOHHA PROTOCOL SPECIFIC FUNCTIONS --------------- */
-
+// The number of random padding bytes before the salt value in header. We use those random numbers in order to better hide our packet salt value. 
+// The minimum value is 1, maximum is 8. We use 4 as default in Hohha Messenger. 
+#define HEADER_SALT_PADDING_SIZE 1
 // Hohha communication header structure:
 // 1 byte AlignedLenSize which describes the size of the variable which describes the length of the plaintext body, in bytes
-// 1 byte dummy random byte(against known plaintext attacks)
+// SALT_PADDING_SIZE byte dummy random byte(against known plaintext attacks)
 // 8 bytes packet salt value for encryption
 // 4 bytes -> Plaintext checksum
 // 1 byte Left padding(number of random characters) before the real plaintext or ciphertext
@@ -1181,7 +1193,7 @@ typedef struct __attribute__((__packed__)) {
   //   Next highest 2 bits(&64 &32) : RESERVED FOR COMPRESSION TYPE! NOT IMPLEMENTED YET!
   //   Low 3 bits(&7) : 1 --> Aligned length is between 0..255; 2-> 255..65535 3->0..2^24-1 4-> 65536..2^32-1 THIS VALUE IS NEVER ENCRYPTED
   uint8_t AlignedLenSize; 
-  uint8_t Dummy; // One byte dummy data. Must be set to a random number
+  uint8_t SaltProtectionPadding[HEADER_SALT_PADDING_SIZE]; // Random data to better protect random salt data
   uint8_t Salt[SALT_SIZE]; // Salt value unique for packet
   uint32_t PlaintextCRC; // Plaintext CRC value to check integrity of the packet LITTLE ENDIAN
   uint8_t Padding; // LeftPad + RightPad 
@@ -1279,16 +1291,14 @@ void CreateHohhaCommunicationPacket2(uint8_t *K, uint32_t KeyCheckSum, size_t In
   ssize_t LPad;
   
   THohhaPacketHeader *PacketHeader = (THohhaPacketHeader *)OutBuf;
-  PacketHeader->Dummy = GetRandomUInt8();
   uint8_t *OBufStart = OutBuf + HHLEN;
   SetHeaderAlignedLenValue((THohhaPacketHeader *)OutBuf, AlignedDataLen);
   PacketHeader->Padding = (uint8_t)(AlignedDataLen-InDataLen);
   RPad = PacketHeader->Padding >> 1;
   LPad = PacketHeader->Padding - RPad;
   
-  
-  // First, let's create a new salt value unique for this transmission and copy original salt data to a buffer
-  GetRandomNumbers(SALT_SIZE, (uint8_t *)&(PacketHeader->Salt));
+  // First, let's create a new salt value and its padding data, unique for this transmission and copy original salt data to a buffer
+  GetRandomNumbers(SALT_SIZE+HEADER_SALT_PADDING_SIZE, (uint8_t *)&(PacketHeader->SaltProtectionPadding));
   // Fill padding data if necessary
   if (LPad)
   {
@@ -1414,7 +1424,6 @@ uint8_t *DecryptCommPacket(uint8_t *K, uint32_t KeyCheckSum, size_t TotalPacketL
 }
 /* --------------------- HOHHA PROTOCOL SPECIFIC FUNCTIONS ENDS HERE --------------- */
 
-#endif
 //#define xorEncryptDecrypt xorEncryptDecryptHOP5
 /* Memcpy Benchmark1 : 
  * This function 
@@ -2088,7 +2097,7 @@ void CreateVisualProofs()
 
 int main()
 {
-  uint32_t BodyLen = 128;
+  uint32_t BodyLen = 256;
 
   //printf("CRC: %u\n", digital_crc32((uint8_t *)"A", 1));
   //printf("CRC: %u\n", digital_crc32((uint8_t *)"Ismail", 6));
