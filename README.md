@@ -51,6 +51,17 @@ If "shameless" is talking about the "packet salt values", he doesn't explain us 
 We protect individual salt values with brute force attack complexity of 2 ^ ( 192 + ( 4 + 8 ) * 40 ) = 2 ^ ( 192 + 12 * 40) = 2 ^ ( 192 + 480 ) = 2^672 
 But, the shameless, claims revealing our key body in "a few minutes"!
 
+OK! In order to better understand of 2^Something values, I'll give concrete numbers:
+
+Wikipedia says that the most powerful computer of the world today, can break 56 bit DES bit brute force in 399 seconds.
+That means, we need 798 seconds to break 57 bits with brute force.
+That means, we need 798*2 seconds to break 58 bits with brute force.
+That means, we need 798*4 seconds to break 59 bits with brute force.
+...
+We need (399 * 2^40)/(60 * 60 * 24 * 365) = 13,911,248.7152 YEARS to break 96 bits with brute force.
+We need (399 * 2^41)/(60 * 60 * 24 * 365) = 13,911,248.7152*2 YEARS to break 96 bits with brute force.
+... Imagine the rest
+
 He is really "the definition of being shameless"!
 
 But he's shameless! It is his duty! He is doing all this for a reason! 
