@@ -83,6 +83,10 @@ The overall brute force attack complexity for the raw encryption algorithm is :
 2^(192 + ( (5 * 8) * Number of characters in plaintext) =
 2^(192 + 40 *  Number of characters in plaintext)
 
+As we told, our shameless, is quoting from Bruce Schneier. He admits that, it's an honor to be like him! And apparently, he's exactly like him! 
+Because, apparantly, Bruce Scneier, is making so ridiculous suppositions that some people created a site to enumarate some "facts" about him. 
+https://www.schneierfacts.com/
+
 
 ## Contacts
 
