@@ -771,17 +771,17 @@ uint32_t xorEncrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOu
   Salt1 = ((uint32_t)(Salt[0]) | ((uint32_t)(Salt[1]) << 8) | ((uint32_t)(Salt[2]) << 16) | ((uint32_t)(Salt[3]) << 24));
   Salt2 = ((uint32_t)(Salt[4]) | ((uint32_t)(Salt[5]) << 8) | ((uint32_t)(Salt[6]) << 16) | ((uint32_t)(Salt[7]) << 24));
   
-  X = !(((uint32_t)(Body[Salt[3]&BodyMask]) | ((uint32_t)(Body[Salt[4]&BodyMask]) << 8) | ((uint32_t)(Body[Salt[0]&BodyMask]) << 16) | ((uint32_t)(Body[Salt[6]&BodyMask]) << 24)));
-  Y = !((uint32_t)(Body[Salt[7]&BodyMask]) | ((uint32_t)(Body[Salt[2]&BodyMask]) << 8) | ((uint32_t)(Body[Salt[1]&BodyMask]) << 16) | ((uint32_t)(Body[Salt[5]&BodyMask]) << 24));
-  
+  X = ~(((uint32_t)(Body[Salt[3]&BodyMask]) | ((uint32_t)(Body[Salt[4]&BodyMask]) << 8) | ((uint32_t)(Body[Salt[0]&BodyMask]) << 16) | ((uint32_t)(Body[Salt[6]&BodyMask]) << 24)));
+  Y = ~((uint32_t)(Body[Salt[7]&BodyMask]) | ((uint32_t)(Body[Salt[2]&BodyMask]) << 8) | ((uint32_t)(Body[Salt[1]&BodyMask]) << 16) | ((uint32_t)(Body[Salt[5]&BodyMask]) << 24));
+  V ^= (((uint32_t)(Body[(~Salt[5])&BodyMask]) | ((uint32_t)(Body[(~Salt[0])&BodyMask]) << 8) | ((uint32_t)(Body[(~Salt[2])&BodyMask]) << 16) | ((uint32_t)(Body[(~Salt[4])&BodyMask]) << 24)));
   // Our initial jump position in the key body depends on a random value
   M = X & BodyMask;
-  
+  //printf("X: %u Y: %u V: %u\n", X,Y,V);
   while (t--)
   { 
     // First jump point
     Salt1 ^= (uint32_t)(Body[M]);
-    Body[M] = (uint8_t)(Salt2); 
+    Body[M] = (uint8_t)(Salt2^V); 
     M = (M^Salt2) & BodyMask; 
     ROL32_1(Salt2);
     
@@ -836,8 +836,9 @@ uint32_t xorDecrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOu
   Salt1 = ((uint32_t)(Salt[0]) | ((uint32_t)(Salt[1]) << 8) | ((uint32_t)(Salt[2]) << 16) | ((uint32_t)(Salt[3]) << 24));
   Salt2 = ((uint32_t)(Salt[4]) | ((uint32_t)(Salt[5]) << 8) | ((uint32_t)(Salt[6]) << 16) | ((uint32_t)(Salt[7]) << 24));
   
-  X = !(((uint32_t)(Body[Salt[3]&BodyMask]) | ((uint32_t)(Body[Salt[4]&BodyMask]) << 8) | ((uint32_t)(Body[Salt[0]&BodyMask]) << 16) | ((uint32_t)(Body[Salt[6]&BodyMask]) << 24)));
-  Y = !((uint32_t)(Body[Salt[7]&BodyMask]) | ((uint32_t)(Body[Salt[2]&BodyMask]) << 8) | ((uint32_t)(Body[Salt[1]&BodyMask]) << 16) | ((uint32_t)(Body[Salt[5]&BodyMask]) << 24));
+  X = ~(((uint32_t)(Body[Salt[3]&BodyMask]) | ((uint32_t)(Body[Salt[4]&BodyMask]) << 8) | ((uint32_t)(Body[Salt[0]&BodyMask]) << 16) | ((uint32_t)(Body[Salt[6]&BodyMask]) << 24)));
+  Y = ~((uint32_t)(Body[Salt[7]&BodyMask]) | ((uint32_t)(Body[Salt[2]&BodyMask]) << 8) | ((uint32_t)(Body[Salt[1]&BodyMask]) << 16) | ((uint32_t)(Body[Salt[5]&BodyMask]) << 24));
+  V ^= (((uint32_t)(Body[(~Salt[5])&BodyMask]) | ((uint32_t)(Body[(~Salt[0])&BodyMask]) << 8) | ((uint32_t)(Body[(~Salt[2])&BodyMask]) << 16) | ((uint32_t)(Body[(~Salt[4])&BodyMask]) << 24)));
   
   // Our initial jump position in the key body depends on a random value
   M = X & BodyMask;
@@ -846,7 +847,7 @@ uint32_t xorDecrypt(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t InOu
   { 
     // First jump point
     Salt1 ^= (uint32_t)(Body[M]);
-    Body[M] = (uint8_t)(Salt2); 
+    Body[M] = (uint8_t)(Salt2^V); 
     M = (M^Salt2) & BodyMask; 
     ROL32_1(Salt2);
     
@@ -912,8 +913,9 @@ uint32_t xorEncryptHOP2(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
   Salt1 = ((uint32_t)(Salt[0]) | ((uint32_t)(Salt[1]) << 8) | ((uint32_t)(Salt[2]) << 16) | ((uint32_t)(Salt[3]) << 24));
   Salt2 = ((uint32_t)(Salt[4]) | ((uint32_t)(Salt[5]) << 8) | ((uint32_t)(Salt[6]) << 16) | ((uint32_t)(Salt[7]) << 24));
   
-  X = !(((uint32_t)(Body[Salt[3]&BodyMask]) | ((uint32_t)(Body[Salt[4]&BodyMask]) << 8) | ((uint32_t)(Body[Salt[0]&BodyMask]) << 16) | ((uint32_t)(Body[Salt[6]&BodyMask]) << 24)));
-  Y = !((uint32_t)(Body[Salt[7]&BodyMask]) | ((uint32_t)(Body[Salt[2]&BodyMask]) << 8) | ((uint32_t)(Body[Salt[1]&BodyMask]) << 16) | ((uint32_t)(Body[Salt[5]&BodyMask]) << 24));
+  X = ~(((uint32_t)(Body[Salt[3]&BodyMask]) | ((uint32_t)(Body[Salt[4]&BodyMask]) << 8) | ((uint32_t)(Body[Salt[0]&BodyMask]) << 16) | ((uint32_t)(Body[Salt[6]&BodyMask]) << 24)));
+  Y = ~((uint32_t)(Body[Salt[7]&BodyMask]) | ((uint32_t)(Body[Salt[2]&BodyMask]) << 8) | ((uint32_t)(Body[Salt[1]&BodyMask]) << 16) | ((uint32_t)(Body[Salt[5]&BodyMask]) << 24));
+  V ^= (((uint32_t)(Body[(~Salt[5])&BodyMask]) | ((uint32_t)(Body[(~Salt[0])&BodyMask]) << 8) | ((uint32_t)(Body[(~Salt[2])&BodyMask]) << 16) | ((uint32_t)(Body[(~Salt[4])&BodyMask]) << 24)));
   
   // Our initial jump position in the key body depends on a random value
   M = X & BodyMask;
@@ -922,7 +924,7 @@ uint32_t xorEncryptHOP2(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
   { 
     // First jump point
     Salt1 ^= (uint32_t)(Body[M]);
-    Body[M] = (uint8_t)(Salt2); 
+    Body[M] = (uint8_t)(Salt2^V); 
     M = (M^Salt2) & BodyMask; 
     ROL32_1(Salt2);
     
@@ -958,8 +960,9 @@ uint32_t xorDecryptHOP2(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
   Salt1 = ((uint32_t)(Salt[0]) | ((uint32_t)(Salt[1]) << 8) | ((uint32_t)(Salt[2]) << 16) | ((uint32_t)(Salt[3]) << 24));
   Salt2 = ((uint32_t)(Salt[4]) | ((uint32_t)(Salt[5]) << 8) | ((uint32_t)(Salt[6]) << 16) | ((uint32_t)(Salt[7]) << 24));
   
-  X = !(((uint32_t)(Body[Salt[3]&BodyMask]) | ((uint32_t)(Body[Salt[4]&BodyMask]) << 8) | ((uint32_t)(Body[Salt[0]&BodyMask]) << 16) | ((uint32_t)(Body[Salt[6]&BodyMask]) << 24)));
-  Y = !((uint32_t)(Body[Salt[7]&BodyMask]) | ((uint32_t)(Body[Salt[2]&BodyMask]) << 8) | ((uint32_t)(Body[Salt[1]&BodyMask]) << 16) | ((uint32_t)(Body[Salt[5]&BodyMask]) << 24));
+  X = ~(((uint32_t)(Body[Salt[3]&BodyMask]) | ((uint32_t)(Body[Salt[4]&BodyMask]) << 8) | ((uint32_t)(Body[Salt[0]&BodyMask]) << 16) | ((uint32_t)(Body[Salt[6]&BodyMask]) << 24)));
+  Y = ~((uint32_t)(Body[Salt[7]&BodyMask]) | ((uint32_t)(Body[Salt[2]&BodyMask]) << 8) | ((uint32_t)(Body[Salt[1]&BodyMask]) << 16) | ((uint32_t)(Body[Salt[5]&BodyMask]) << 24));
+  V ^= (((uint32_t)(Body[(~Salt[5])&BodyMask]) | ((uint32_t)(Body[(~Salt[0])&BodyMask]) << 8) | ((uint32_t)(Body[(~Salt[2])&BodyMask]) << 16) | ((uint32_t)(Body[(~Salt[4])&BodyMask]) << 24)));
   
   // Our initial jump position in the key body depends on a random value
   M = X & BodyMask;
@@ -968,7 +971,7 @@ uint32_t xorDecryptHOP2(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
   { 
     // First jump point
     Salt1 ^= (uint32_t)(Body[M]);
-    Body[M] = (uint8_t)(Salt2); 
+    Body[M] = (uint8_t)(Salt2^V); 
     M = (M^Salt2) & BodyMask; 
     ROL32_1(Salt2);
     
@@ -1004,8 +1007,9 @@ uint32_t xorEncryptHOP3(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
   Salt1 = ((uint32_t)(Salt[0]) | ((uint32_t)(Salt[1]) << 8) | ((uint32_t)(Salt[2]) << 16) | ((uint32_t)(Salt[3]) << 24));
   Salt2 = ((uint32_t)(Salt[4]) | ((uint32_t)(Salt[5]) << 8) | ((uint32_t)(Salt[6]) << 16) | ((uint32_t)(Salt[7]) << 24));
   
-  X = !(((uint32_t)(Body[Salt[3]&BodyMask]) | ((uint32_t)(Body[Salt[4]&BodyMask]) << 8) | ((uint32_t)(Body[Salt[0]&BodyMask]) << 16) | ((uint32_t)(Body[Salt[6]&BodyMask]) << 24)));
-  Y = !((uint32_t)(Body[Salt[7]&BodyMask]) | ((uint32_t)(Body[Salt[2]&BodyMask]) << 8) | ((uint32_t)(Body[Salt[1]&BodyMask]) << 16) | ((uint32_t)(Body[Salt[5]&BodyMask]) << 24));
+  X = ~(((uint32_t)(Body[Salt[3]&BodyMask]) | ((uint32_t)(Body[Salt[4]&BodyMask]) << 8) | ((uint32_t)(Body[Salt[0]&BodyMask]) << 16) | ((uint32_t)(Body[Salt[6]&BodyMask]) << 24)));
+  Y = ~((uint32_t)(Body[Salt[7]&BodyMask]) | ((uint32_t)(Body[Salt[2]&BodyMask]) << 8) | ((uint32_t)(Body[Salt[1]&BodyMask]) << 16) | ((uint32_t)(Body[Salt[5]&BodyMask]) << 24));
+  V ^= (((uint32_t)(Body[(~Salt[5])&BodyMask]) | ((uint32_t)(Body[(~Salt[0])&BodyMask]) << 8) | ((uint32_t)(Body[(~Salt[2])&BodyMask]) << 16) | ((uint32_t)(Body[(~Salt[4])&BodyMask]) << 24)));
   
   // Our initial jump position in the key body depends on a random value
   M = X & BodyMask;
@@ -1014,7 +1018,7 @@ uint32_t xorEncryptHOP3(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
   { 
     // First jump point
     Salt1 ^= (uint32_t)(Body[M]);
-    Body[M] = (uint8_t)(Salt2); 
+    Body[M] = (uint8_t)(Salt2^V); 
     M = (M^Salt2) & BodyMask; 
     ROL32_1(Salt2);
     
@@ -1057,8 +1061,9 @@ uint32_t xorDecryptHOP3(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
   Salt1 = ((uint32_t)(Salt[0]) | ((uint32_t)(Salt[1]) << 8) | ((uint32_t)(Salt[2]) << 16) | ((uint32_t)(Salt[3]) << 24));
   Salt2 = ((uint32_t)(Salt[4]) | ((uint32_t)(Salt[5]) << 8) | ((uint32_t)(Salt[6]) << 16) | ((uint32_t)(Salt[7]) << 24));
   
-  X = !(((uint32_t)(Body[Salt[3]&BodyMask]) | ((uint32_t)(Body[Salt[4]&BodyMask]) << 8) | ((uint32_t)(Body[Salt[0]&BodyMask]) << 16) | ((uint32_t)(Body[Salt[6]&BodyMask]) << 24)));
-  Y = !((uint32_t)(Body[Salt[7]&BodyMask]) | ((uint32_t)(Body[Salt[2]&BodyMask]) << 8) | ((uint32_t)(Body[Salt[1]&BodyMask]) << 16) | ((uint32_t)(Body[Salt[5]&BodyMask]) << 24));
+  X = ~(((uint32_t)(Body[Salt[3]&BodyMask]) | ((uint32_t)(Body[Salt[4]&BodyMask]) << 8) | ((uint32_t)(Body[Salt[0]&BodyMask]) << 16) | ((uint32_t)(Body[Salt[6]&BodyMask]) << 24)));
+  Y = ~((uint32_t)(Body[Salt[7]&BodyMask]) | ((uint32_t)(Body[Salt[2]&BodyMask]) << 8) | ((uint32_t)(Body[Salt[1]&BodyMask]) << 16) | ((uint32_t)(Body[Salt[5]&BodyMask]) << 24));
+  V ^= (((uint32_t)(Body[(~Salt[5])&BodyMask]) | ((uint32_t)(Body[(~Salt[0])&BodyMask]) << 8) | ((uint32_t)(Body[(~Salt[2])&BodyMask]) << 16) | ((uint32_t)(Body[(~Salt[4])&BodyMask]) << 24)));
   
   // Our initial jump position in the key body depends on a random value
   M = X & BodyMask;
@@ -1067,7 +1072,7 @@ uint32_t xorDecryptHOP3(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
   { 
     // First jump point
     Salt1 ^= (uint32_t)(Body[M]);
-    Body[M] = (uint8_t)(Salt2); 
+    Body[M] = (uint8_t)(Salt2^V); 
     M = (M^Salt2) & BodyMask; 
     ROL32_1(Salt2);
     
@@ -1110,8 +1115,9 @@ uint32_t xorEncryptHOP4(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
   Salt1 = ((uint32_t)(Salt[0]) | ((uint32_t)(Salt[1]) << 8) | ((uint32_t)(Salt[2]) << 16) | ((uint32_t)(Salt[3]) << 24));
   Salt2 = ((uint32_t)(Salt[4]) | ((uint32_t)(Salt[5]) << 8) | ((uint32_t)(Salt[6]) << 16) | ((uint32_t)(Salt[7]) << 24));
   
-  X = !(((uint32_t)(Body[Salt[3]&BodyMask]) | ((uint32_t)(Body[Salt[4]&BodyMask]) << 8) | ((uint32_t)(Body[Salt[0]&BodyMask]) << 16) | ((uint32_t)(Body[Salt[6]&BodyMask]) << 24)));
-  Y = !((uint32_t)(Body[Salt[7]&BodyMask]) | ((uint32_t)(Body[Salt[2]&BodyMask]) << 8) | ((uint32_t)(Body[Salt[1]&BodyMask]) << 16) | ((uint32_t)(Body[Salt[5]&BodyMask]) << 24));
+  X = ~(((uint32_t)(Body[Salt[3]&BodyMask]) | ((uint32_t)(Body[Salt[4]&BodyMask]) << 8) | ((uint32_t)(Body[Salt[0]&BodyMask]) << 16) | ((uint32_t)(Body[Salt[6]&BodyMask]) << 24)));
+  Y = ~((uint32_t)(Body[Salt[7]&BodyMask]) | ((uint32_t)(Body[Salt[2]&BodyMask]) << 8) | ((uint32_t)(Body[Salt[1]&BodyMask]) << 16) | ((uint32_t)(Body[Salt[5]&BodyMask]) << 24));
+  V ^= (((uint32_t)(Body[(~Salt[5])&BodyMask]) | ((uint32_t)(Body[(~Salt[0])&BodyMask]) << 8) | ((uint32_t)(Body[(~Salt[2])&BodyMask]) << 16) | ((uint32_t)(Body[(~Salt[4])&BodyMask]) << 24)));
   
   // Our initial jump position in the key body depends on a random value
   M = X & BodyMask;
@@ -1120,7 +1126,7 @@ uint32_t xorEncryptHOP4(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
   { 
     // First jump point
     Salt1 ^= (uint32_t)(Body[M]);
-    Body[M] = (uint8_t)(Salt2); 
+    Body[M] = (uint8_t)(Salt2^V); 
     M = (M^Salt2) & BodyMask; 
     ROL32_1(Salt2);
     
@@ -1168,8 +1174,9 @@ uint32_t xorDecryptHOP4(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
   Salt1 = ((uint32_t)(Salt[0]) | ((uint32_t)(Salt[1]) << 8) | ((uint32_t)(Salt[2]) << 16) | ((uint32_t)(Salt[3]) << 24));
   Salt2 = ((uint32_t)(Salt[4]) | ((uint32_t)(Salt[5]) << 8) | ((uint32_t)(Salt[6]) << 16) | ((uint32_t)(Salt[7]) << 24));
   
-  X = !(((uint32_t)(Body[Salt[3]&BodyMask]) | ((uint32_t)(Body[Salt[4]&BodyMask]) << 8) | ((uint32_t)(Body[Salt[0]&BodyMask]) << 16) | ((uint32_t)(Body[Salt[6]&BodyMask]) << 24)));
-  Y = !((uint32_t)(Body[Salt[7]&BodyMask]) | ((uint32_t)(Body[Salt[2]&BodyMask]) << 8) | ((uint32_t)(Body[Salt[1]&BodyMask]) << 16) | ((uint32_t)(Body[Salt[5]&BodyMask]) << 24));
+  X = ~(((uint32_t)(Body[Salt[3]&BodyMask]) | ((uint32_t)(Body[Salt[4]&BodyMask]) << 8) | ((uint32_t)(Body[Salt[0]&BodyMask]) << 16) | ((uint32_t)(Body[Salt[6]&BodyMask]) << 24)));
+  Y = ~((uint32_t)(Body[Salt[7]&BodyMask]) | ((uint32_t)(Body[Salt[2]&BodyMask]) << 8) | ((uint32_t)(Body[Salt[1]&BodyMask]) << 16) | ((uint32_t)(Body[Salt[5]&BodyMask]) << 24));
+  V ^= (((uint32_t)(Body[(~Salt[5])&BodyMask]) | ((uint32_t)(Body[(~Salt[0])&BodyMask]) << 8) | ((uint32_t)(Body[(~Salt[2])&BodyMask]) << 16) | ((uint32_t)(Body[(~Salt[4])&BodyMask]) << 24)));
   
   // Our initial jump position in the key body depends on a random value
   M = X & BodyMask;
@@ -1178,7 +1185,7 @@ uint32_t xorDecryptHOP4(uint8_t *K, uint8_t *Salt, uint32_t KeyCheckSum, size_t 
   { 
     // First jump point
     Salt1 ^= (uint32_t)(Body[M]);
-    Body[M] = (uint8_t)(Salt2); 
+    Body[M] = (uint8_t)(Salt2^V); 
     M = (M^Salt2) & BodyMask; 
     ROL32_1(Salt2);
     
