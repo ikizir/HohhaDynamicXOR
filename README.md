@@ -59,10 +59,17 @@ That means, we need 798 * 2 seconds to break 58 bits with brute force.
 That means, we need 798 * 4 seconds to break 59 bits with brute force.
 ...
 We need (399 * 2 ^ 40)/(60 * 60 * 24 * 365) = 13,911,248.7152 YEARS to break 96 bits with brute force.
-We need (399 * 2 ^ 41)/(60 * 60 * 24 * 365) = 13,911,248.7152 * 2 YEARS to break 96 bits with brute force.
+We need (399 * 2 ^ 41)/(60 * 60 * 24 * 365) = 27,822,497.4304 =  YEARS to break 97 bits with brute force.
+We need (399 * 2 ^ 42)/(60 * 60 * 24 * 365) = 55,644,994.8608 =  YEARS to break 98 bits with brute force.
 ... Imagine the rest
 
-He is really "the definition of being shameless"!
+And understand this: You can see different "flavors" of this algorithm here. But all have a common point:
+They have at least, at least "192" bits "Initial state" brute force attack complexity! 
+What does it mean? Not even "for breaking", in order to "try" to start a meaningful attack, they must explain how they "obtain" 192 bit random value :) That's why, Oscar the shameless avoids that part and directly dives to cryptography wonkie junkie humpy part :) 192 bits means practically "infinite" number of years(At least, I can't multiply every time by two and write the numbers here). 
+
+Why Oscar and his masters "have to" do this? Because, it is their end! Computers are fast and resourceful. I am demonstrating here, that, any experienced developer can create good cryptosystems that "professional cryptographers" can't break! 
+
+Oscar, is really "the definition" of being shameless!
 
 But he's shameless! It is his duty! He is doing all this for a reason! 
 
