@@ -32,10 +32,10 @@ Shameless hides his identity because he knows very well what he's doing: He's ly
 
 He's a professional on what he's doing. He looks so confident and mixes so good some truth with lies that, even me, I was about to believe him, when I first saw what he wrote!
 
-He even has a program which does "reveals" the key in a "few seconds"!
+He even has a program which "reveals" the key in a "few seconds"!
 
 Then I realized: That program, and all his algorithmic system needs to know "the key" in order to function!
-Yes! You don't hear wrong! The translation of all that "scientific looking bullshit" is that "he can reveal the key, if he has the key"!
+Yes! You don't misunderstand! The translation of all that "scientific looking bullshit" is that "he can reveal the key, if he has the key"!
 
 Information theory supposes that "everything but the key cannot be secret to the attacker".
 
@@ -48,7 +48,7 @@ From scientific point of view, "considering already having a value in the key" i
 
 Original salt value is used only for one purpose: To encrypt individual salt values for every plaintext to be encrypted!
 If "shameless" is talking about the "packet salt values", he doesn't explain us how he obtains it: 
-We protect individual salt values with brute force attack complexity of 2^(192+ (4+8)*40) = 2^(192+12*40) = 2^(192+480) = 2^672 
+We protect individual salt values with brute force attack complexity of 2 ^ ( 192 + ( 4 + 8 ) * 40 ) = 2 ^ ( 192 + 12 * 40) = 2 ^ ( 192 + 480 ) = 2^672 
 But, the shameless, claims revealing our key body in "a few minutes"!
 
 He is really "the definition of being shameless"!
@@ -80,7 +80,7 @@ Actual brute force attack complexity for only the "initial state" of the encrypt
 The overall brute force attack complexity for the raw encryption algorithm is :
 2^(Initial State brute force attack complexity + Possibilities for every byte encrypted * Number of characters in plaintext) =
 2^(Initial State brute force attack complexity + Number of unknown bits from key body, used to encrypt every chars * Number of characters in plaintext) =
-2^(192 + ((5*8) * Number of characters in plaintext) =
+2^(192 + ( (5 * 8) * Number of characters in plaintext) =
 2^(192 + 40 *  Number of characters in plaintext)
 
 
