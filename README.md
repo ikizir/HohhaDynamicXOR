@@ -39,7 +39,7 @@ Yes! You don't misunderstand! The translation of all that "scientific looking bu
 
 Information theory supposes that "everything but the key cannot be secret to the attacker".
 
-The shameless "supposes", he knows the "key crc" AND "the salt".
+The shameless "supposes", he knows the "key crc" AND "the salt" AND "the plaintext".
 Key CRC, as named, is the 32 bit cyclic redundancy checksum of the bytes on the key: Key CRC "is" the key! 
 
 Shameless also claims: He knows Salt: What salt are we talking about? 
@@ -82,6 +82,8 @@ The overall brute force attack complexity for the raw encryption algorithm is :
 2^(Initial State brute force attack complexity + Number of unknown bits from key body, used to encrypt every chars * Number of characters in plaintext) =
 2^(192 + ( (5 * 8) * Number of characters in plaintext) =
 2^(192 + 40 *  Number of characters in plaintext)
+
+Last but not least, we protect the plaintext with extra random padding bytes. But I don't want to mention here, about the practical difficulties to obtain both ciphertext and plaintext here, since, information theory let them "suppose" having the plaintext in their "fictif" world :)
 
 As we told, our shameless, is quoting from Bruce Schneier. He admits that, it's an honor to be like him! And apparently, he's exactly like him! 
 Because, apparantly, Bruce Scneier, is making so ridiculous suppositions that some people created a site to enumarate some "facts" about him. 
