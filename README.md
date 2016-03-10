@@ -104,7 +104,7 @@ The overall brute force attack complexity for the raw encryption algorithm is :
 Last but not least, we protect the plaintext with extra random padding bytes. But I don't want to mention here, about the practical difficulties to obtain both ciphertext and plaintext here, since, information theory let them "suppose" having the plaintext in their "fictif" world :)
 
 As we told, our shameless, is quoting from Bruce Schneier. He admits that, it's an honor to be like him! And apparently, he's exactly like him! 
-Because, apparantly, Bruce Scneier, is making so ridiculous suppositions that some people created a site to enumarate some "facts" about him. 
+Because, apparantly, Bruce Schneier, is making so ridiculous suppositions that some people created a site to enumarate some "facts" about him. 
 https://www.schneierfacts.com/
 
 There are many. But I can't resist to quote two of them here :)
@@ -112,6 +112,10 @@ There are many. But I can't resist to quote two of them here :)
 * When Bruce Schneier observes a quantum particle, it remains in the same state until he has finished observing it.
 * Bruce Schneier knows the state of schroedinger's cat
 
+I am hearing you, telling to yourself: "Will 192 bits initial state provide enough security in future? The computers are developing by a factor of 2 every year"!
+You gave the answer: In future, we can double the size of "Salt" values, and use 128 bit salt values instead of 64.
+We can double, triple key sizes.
+In fact, there is no reason for me to not to do it now. I just don't want to overkill.
 
 ## Contacts
 
