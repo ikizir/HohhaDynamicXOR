@@ -22,7 +22,7 @@ Will run the integrity checks, and print out the benchmarks.
 
 ## Anatomy of a "shameless"
 
-I don't like to do it, but, it is unavoidable to present you "the anatomy of a shameless", since it's a typical example and he created a fork for lies:
+I don't like to do it, but, it is unavoidable to present you "the anatomy of a shameless", since it's a typical example of his kind and he created a fork for lies:
 
 https://github.com/ed770878/HohhaDynamicXOR
 
