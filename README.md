@@ -106,13 +106,14 @@ The overall brute force attack complexity for the raw encryption algorithm is :
 Last but not least, we protect the plaintext with extra random padding bytes. But I don't want to mention here, about the practical difficulties to obtain both ciphertext and plaintext, since, information theory let them "suppose" having the plaintext in their "fictif" world.
 
 As we told, our shameless, is quoting from Bruce Schneier. He admits that, it's an honor to be like him! And apparently, he's exactly like him! 
-Because, apparantly, Bruce Schneier, is making so ridiculous suppositions that some people created a site to enumarate some "facts" about him. 
+Because, apparently, Bruce Schneier, is making so ridiculous suppositions that some people created a site to enumarate some "facts" about him. 
 https://www.schneierfacts.com/
 
-There are many. But I can't resist to quote two of them here :)
+There are many. But I can't resist to quote some of them here :)
 
 * When Bruce Schneier observes a quantum particle, it remains in the same state until he has finished observing it.
 * Bruce Schneier knows the state of schroedinger's cat
+* Bruce Schneier doesn't even know the meaning of the word ciphertext, because to him, everything is plaintext.
 
 ## Contacts
 
