@@ -30,7 +30,7 @@ This shameless, is -with his own words- "Oscar from Internet". Hides his real id
 The only thing we know about him is that, he knows about cryptography, -again, with his own words- he's admirer of Bruce Schneier and he's trying to prove his master's law: "Everybody can create a crypto he/she can't break"(Implying "they" can break)! 
 Shameless hides his identity because he knows very well what he's doing: He's lying, abusing information theory for his lies and tries to create doubts about my algorithm.
 
-He's a professional on what he's doing. He looks so confident and mixes so good some truth with lies that, even me, I was about to believe him, when I first saw what he wrote!
+He's a professional on what he's doing. He looks so confident and mixes so well some truth with lies that, even me, I was about to believe him, when I first saw what he wrote!
 
 He even has a program which "reveals" the key in a "few minutes"!
 
@@ -42,7 +42,7 @@ Information theory supposes that "everything but the key cannot be secret to the
 The shameless "supposes", he obtained 1000 "key crc" AND "the salt" AND "the plaintext".
 Key CRC, as named, is the 32 bit cyclic redundancy checksum of the bytes on the key: Key CRC "is" the key! 
 
-Shameless also suppose that he "intercepted" Salt: What salt are we talking about? 
+Shameless also "supposes" that he "intercepted" Salt: Which salt are we talking about? 
 If we talk about the "original salt value", it is part of the key: It "is" the key! 
 From scientific point of view, "considering already having a value in the key" is "bullshit". From humanitarian way, it is being shameless. 
 
@@ -51,7 +51,7 @@ If "shameless" is talking about the "packet salt values", he doesn't explain us 
 We protect individual salt values with brute force attack complexity of 2 ^ ( 192 + ( 4 + 8 ) * 40 ) = 2 ^ ( 192 + 12 * 40) = 2 ^ ( 192 + 480 ) = 2 ^ 672 
 But, the shameless, claims revealing our key body in "a few minutes"! 
 
-OK! In order to better understand of 2 ^ Something values, I'll give concrete numbers:
+OK! In order to better understand 2 ^ Something values, I'll give concrete numbers:
 
 Wikipedia says that the most powerful computer of the world today, can break 56 bit DES encryption with brute force attack in 399 seconds.
 That means, we need 798 seconds to break 57 bits with brute force.
@@ -65,7 +65,7 @@ We need (399 * 2 ^ 42)/(60 * 60 * 24 * 365) = 55,644,994.8608 =  YEARS to break 
 
 And understand this: You can see different "flavors" of this algorithm here. But all have a common point:
 They have at least, at least "192" bits "Initial state" brute force attack complexity! 
-What does it mean? Not even "for breaking", in order to "try" to start a meaningful attack, they must explain how they "obtain" 192 bit random value :) That's why, Oscar the shameless avoids that part and directly dives to cryptography wonkie junkie humpy part :) 192 bits means practically "infinite" number of years(At least, I can't multiply every time by two and write the numbers here). 
+What does it mean? Not even "for breaking", in order to "try" to start a meaningful attack, they must explain how they "obtain" 192 bits random value :) That's why, Oscar the shameless avoids that part and directly dives into cryptography wonkie junkie humpy part :) 192 bits means practically "infinite" number of years(At least, I can't multiply every time by two and write the numbers here). 
 
 But, Oscar is claiming invented a "God's machine working with divine intelligence". He doesn't need to explain how he intercepts some "negligible" values, which takes, only multi-billion years to intercept without communicating with God! 
 
@@ -87,7 +87,7 @@ Shameless is not alone. Others, "more professionals" will come and will try to m
 From the other hand, shamlesses are useful.
 Whenever they try to mislead people with lies, just in the name of "appearing to do something", I am hardening the algorithm.
 But why?
-It is already increadibly hard to break. 
+It is already incredibly hard to break. 
 I can really make the inner loop much, much, much more complex. I don't want to do that. It's overkill. Non-sense! 
 
 In mathematics, we speak with numbers. Not "suppositions".
@@ -106,7 +106,7 @@ The overall brute force attack complexity for the raw encryption algorithm is :
 Last but not least, we protect the plaintext with extra random padding bytes. But I don't want to mention here, about the practical difficulties to obtain both ciphertext and plaintext, since, information theory let them "suppose" having the plaintext in their "fictif" world.
 
 As we told, our shameless, is quoting from Bruce Schneier. He admits that, it's an honor to be like him! And apparently, he's exactly like him! 
-Because, apparently, Bruce Schneier, is making so ridiculous suppositions that some people created a site to enumarate some "facts" about him. 
+Because, apparently, Bruce Schneier, is making so ridiculous suppositions that some people created a site to enumerate some "facts" about him. 
 https://www.schneierfacts.com/
 
 There are many. But I can't resist to quote some of them here :)
@@ -121,4 +121,4 @@ Ismail Kizir <[ikizir@gmail.com]>
 
 [wiki]: https://github.com/ikizir/HohhaDynamicXOR/wiki
 [ikizir@gmail.com]: mailto:ikizir@gmail.com
-
+[http://ismail-kizir.blogspot.com.tr/]: http://ismail-kizir.blogspot.com.tr/
