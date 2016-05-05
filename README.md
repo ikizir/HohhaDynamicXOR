@@ -44,7 +44,7 @@ Key CRC, as named, is the 32 bit cyclic redundancy checksum of the bytes on the 
 
 Shameless also "supposes" that he "intercepted" Salt: Which salt are we talking about? 
 If we talk about the "original salt value", it is part of the key: It "is" the key! 
-From scientific point of view, "considering already having a value in the key" is "bullshit". From humanitarian way, it is being shameless. 
+From scientific point of view, "assuming having intercepted a value in the key" is "bullshit". From humanitarian way, it is being shameless. 
 
 Original salt value is used only for one purpose: To encrypt individual salt values for every plaintext to be encrypted!
 If "shameless" is talking about the "packet salt values", he doesn't explain us how he obtains it: 
