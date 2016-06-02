@@ -20,6 +20,12 @@ gcc -O3 -Wall -o test HohhaDynamicXOR.c
 ```
 Will run the integrity checks, and print out the benchmarks.
 
+#Cordova native IOS implementation
+
+We created another repository for a Cordova plugin for iOS. This plugin may also be used for native RSA encryption&decryption. It uses mbedTLS.
+
+https://github.com/ikizir/cordova-plugin-hohha-encryptor
+
 ## Anatomy of a "shameless"
 
 I don't like to do it, but, it is unavoidable to present you "the anatomy of a shameless", since it's a typical example of his kind and he created a fork for lies:
