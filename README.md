@@ -1,7 +1,7 @@
 Note: Hohha V2 is on the way.
 Some updates for Hohha Xor V2 will be:
 
-* With <= 64 bytes key body length, all key body is be kept in L1 cache.
+* With <= 64 bytes key body length, all key body is expected to be kept in L1 cache.
 
   Encryption uses only XOR and operates in constant time.
   
@@ -10,6 +10,7 @@ Some updates for Hohha Xor V2 will be:
   I tried to update the algorithm according to D.J. Bernstein's paper at:
   
   https://cr.yp.to/antiforgery/cachetiming-20050414.pdf
+  
   
 * It encrypts 32 bit blocks. It is faster(at least by a factor of 2). 
 
