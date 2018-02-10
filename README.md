@@ -3,9 +3,9 @@ Some updates for Hohha Xor V2 will be:
 
 * With <= 64 bytes key body length, all key body is be kept in L1 cache.
 
-  Encryption uses only XOR and operates in constact time.
+  Encryption uses only XOR and operates in constant time.
   
-  Consequently, it is resistant to side channel and timing attacks.
+  Consequently, it is expected to be resistant to side channel and timing attacks.
   
   I tried to update the algorithm according to D.J. Bernstein's paper at:
   
