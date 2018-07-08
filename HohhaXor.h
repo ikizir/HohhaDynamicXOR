@@ -12,12 +12,8 @@
 extern "C" {
 #endif
 
-/*#if !defined(BASE64_ENCODED_LEN)
-// Returns base64 encoded length of binary data
-#define BASE64_ENCODED_LEN(l) ALIGN_TO((4*(l))/3, 4)
-// Returns the maximum amount of space required to store a a base64 encoded binary data
-#define BASE64_DECODED_BINBUF_REQUIREMENT(l) (((3*(l))/4)+3)
-#endif*/
+void init_rand(uint32_t x);
+void GetRandomNumbers(uint32_t ByteCount, void *Buffer);
 
 // Portable endian macros by Mathias Panzenböck
 #if (defined(_WIN16) || defined(_WIN32) || defined(_WIN64)) && !defined(__WINDOWS__)
@@ -126,6 +122,19 @@ extern "C" {
 #	error platform not supported
 
 #endif
+
+
+#define ALIGN_TO_ROUND_DOWN32(v,n) ((uint32_t)(v) & ~((uint32_t)(n)-1))
+#define ALIGN_TO_ROUND_UP32(v,n) (((uint32_t)(v) + (uint32_t)(n) - 1) & ~((uint32_t)(n)-1))
+
+#define ALIGN_TO_ROUND_DOWN64(v,n) ((uint64_t)(v) & ~((uint64_t)(n)-1))
+#define ALIGN_TO_ROUND_UP64(v,n) (((uint64_t)(v) + (uint64_t)(n) - 1) & ~((uint64_t)(n)-1))
+
+// Returns base64 encoded length of binary data
+#define BASE64_ENCODED_LEN(l) ALIGN_TO_ROUND_UP64((4*(l))/3, 4)
+// Returns the maximum amount of space required to store a a base64 encoded binary data
+#define BASE64_DECODED_BINBUF_REQUIREMENT(l) (((3*(l))/4)+3)
+
 
 // Standart C has not ROL or ROR function, but most modern cpus has instructions for circular shift operations
 // This is a quick and dirty code for standart C versions and Intel Family cpu assembler optimized versions
