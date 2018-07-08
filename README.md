@@ -40,11 +40,13 @@ You don't need to send nonce values separately.
 You don't need other signature schemes for verification.
 Those functions are enough for a reliable encyrption&decryption&authentication:
 
+```
 int xorGetKey(uint8_t NumJumps, uint32_t BodyLen, uint8_t *KeyBuf);
 unsigned int CheckKeyIntegrity(uint8_t *K, size_t TotalKeyBufLen);
 void xorEncryptAndSign2(uint8_t *K, size_t InDataLen, const uint8_t *InBuf, uint32_t DataAlignment, uint8_t *OutBuf);
 uint8_t *xorEncryptAndSign(uint8_t *K, size_t InDataLen, uint8_t *InBuf, uint32_t DataAlignment);
 uint8_t *xorDecryptAndVerify(uint8_t *K, size_t TotalPacketLen, uint8_t *InOutBuf, ssize_t *PlainTextLen);
+```
 
 Code is self documented. In HohhaXor.c, you can find meanings of parameters.
 And in HohhaBench.c you can find usages.
@@ -63,7 +65,7 @@ I will write a more detailed documentation in future.
   
 * It encrypts 32 bit blocks. It is faster(at least by a factor of 2). 
 
-* The authentication signature will be 16 bytes. Even more secure.
+* The authentication signature is 16 bytes. Even more secure than before.
 
 Note that HohhaDynamicXor.c is now obsolete!
 
