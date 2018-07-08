@@ -69,6 +69,9 @@ I will write a more detailed documentation in future.
 
 Note that HohhaDynamicXor.c is now obsolete!
 
+## License
+
+MIT & GPL dual license.
 
 ## Contacts
 
