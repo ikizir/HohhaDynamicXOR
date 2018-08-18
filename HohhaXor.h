@@ -286,7 +286,18 @@ static inline size_t GetHohhaExactEncryptedPacketSize(size_t InputDataSize, size
  */
 void xorEncryptAndSign2(uint8_t *K, size_t InDataLen, const uint8_t *InBuf, uint32_t DataAlignment, uint8_t *OutBuf);
 uint8_t *xorEncryptAndSign(uint8_t *K, size_t InDataLen, uint8_t *InBuf, uint32_t DataAlignment);
-
+/** xorDecryptAndVerify
+ * Decrypts and verifies an encrypted packet 
+ * On return, PlainTextLen will contain length of the plaintext on success or negative on error
+ * @param K const uint8_t * Key pointer
+ * @param TotalPacketLen size_t Exact encrypted packet size
+ * @param InOutBuf uint8_t * Encrypted packet pointer.
+ *        Decrypted data will be overwritten to this area.
+ *        Return pointer will be inside this area.
+ * @param PlainTextLen ssize_t Positive size of the plaintext on success or negative error code
+ *        See HOHHA_ERROR_XXX error codes
+ * @return Returns a pointer to decrypted data on success or NULL on error
+ */
 uint8_t *xorDecryptAndVerify(uint8_t *K, size_t TotalPacketLen, uint8_t *InOutBuf, ssize_t *PlainTextLen);
 
 static inline unsigned AuthCodesMatch(THohhaAuthCode *C1, THohhaAuthCode *C2)
