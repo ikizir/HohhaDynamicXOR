@@ -300,8 +300,12 @@ uint8_t *xorEncryptAndSign(uint8_t *K, size_t InDataLen, uint8_t *InBuf, uint32_
  */
 uint8_t *xorDecryptAndVerify(uint8_t *K, size_t TotalPacketLen, uint8_t *InOutBuf, ssize_t *PlainTextLen);
 
+// WARNING: IT IS BETTER TO REPLACE THIS FUNCTION WITH A "FULL" MEMCMP as a defence for timing attacks
+// So, it will always compare 16 full bytes instead of compaing e.g. 5 bytes and return when they are different
+// You can use D.J. Bernstein's small crypto_verify_n function as this:
+// return (crypto_verify_n((const unsigned char *)C1, (const unsigned char *)C2, 16) == 0);
 static inline unsigned AuthCodesMatch(THohhaAuthCode *C1, THohhaAuthCode *C2)
-{
+{ 
   return (C1->S1 == C2->S1) && (C1->S2 == C2->S2) && (C1->X == C2->X) && (C1->Y == C2->Y);
 }
 
