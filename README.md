@@ -24,8 +24,10 @@ A typical build command is:
 AVX2_CFLAGS=-mavx2 SSSE3_CFLAGS=-mssse3 SSE41_CFLAGS=-msse4.1 SSE42_CFLAGS=-msse4.2 AVX_CFLAGS=-mavx make lib/libbase64.o
 ```
 
-Then, you can compile and run benchmark program with:
+Then, you can download Hohha source, compile and run benchmark program with:
 ```
+git clone https://github.com/ikizir/HohhaDynamicXOR
+cd HohhaDynamicXOR
 cmake .
 make
 ./HohhaBench -r 100000
